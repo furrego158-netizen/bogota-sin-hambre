@@ -2064,7 +2064,9 @@ function ZoomListener({
     const handler = () => onZoom(map.getZoom());
     map.on("zoomend", handler);
 
-    return () => map.off("zoomend", handler);
+    return () => {
+      map.off("zoomend", handler);
+    };
   }, [map, onZoom]);
 
   return null;
