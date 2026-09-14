@@ -22,7 +22,6 @@ const reports = [
     status: "Nueva",
     description:
       "La ciudadanía reporta una situación relacionada con la atención alimentaria en este sector.",
-    fotografia: "",
   },
   {
     id: 2,
@@ -34,7 +33,6 @@ const reports = [
     status: "En revisión",
     description:
       "Reporte recibido por medio del formulario ciudadano de Bogotá Sin Hambre.",
-    fotografia: "",
   },
   {
     id: 3,
@@ -46,7 +44,6 @@ const reports = [
     status: "Prioritaria",
     description:
       "La comunidad informa sobre una situación que requiere atención prioritaria.",
-    fotografia: "",
   },
 ];
 
@@ -147,19 +144,6 @@ export default function Home() {
       });
   }, []);
 
-  const totalReportes = reportsData.length;
-  const casosPrioritarios = reportsData.filter((report: any) =>
-    String(report.status || "").toLowerCase().includes("priorit")
-  ).length;
-  const casosAtendidos = reportsData.filter((report: any) =>
-    String(report.status || "").toLowerCase() === "atendida"
-  ).length;
-  const localidadesActivas = new Set(
-    reportsData
-      .map((report: any) => String(report.location || "").trim())
-      .filter(Boolean)
-  ).size;
-
   const [selectedComedor, setSelectedComedor] = useState<any>(null);
 
   const handleComedorSelect = (comedor: any) => {
@@ -180,6 +164,79 @@ export default function Home() {
   const [showLimites, setShowLimites] = useState(true);
 
   const [showNombres, setShowNombres] = useState(true);
+
+  /* =========================================================
+     FILTROS DEL EXPLORADOR DE INFORMES
+  ========================================================= */
+
+  const [filtroLocalidad, setFiltroLocalidad] = useState(
+    "Todas las localidades"
+  );
+
+  const [filtroEstado, setFiltroEstado] = useState(
+    "Todos los estados"
+  );
+
+  const [filtroCategoria, setFiltroCategoria] = useState(
+    "Todas las categorías"
+  );
+
+  const reportesFiltrados = reportsData.filter((report: any) => {
+    const coincideLocalidad =
+      filtroLocalidad === "Todas las localidades" ||
+      String(report.location || "").trim().toLowerCase() ===
+        filtroLocalidad.trim().toLowerCase();
+
+    const coincideEstado =
+      filtroEstado === "Todos los estados" ||
+      String(report.status || "").trim().toLowerCase() ===
+        filtroEstado.trim().toLowerCase();
+
+    const coincideCategoria =
+      filtroCategoria === "Todas las categorías" ||
+      String(report.category || "").trim().toLowerCase() ===
+        filtroCategoria.trim().toLowerCase();
+
+    return (
+      coincideLocalidad &&
+      coincideEstado &&
+      coincideCategoria
+    );
+  });
+
+  useEffect(() => {
+    if (!reportesFiltrados.length) return;
+
+    const sigueVisible = reportesFiltrados.some(
+      (report: any) => report.id === selectedReport?.id
+    );
+
+    if (!sigueVisible) {
+      setSelectedReport(reportesFiltrados[0]);
+      setSelectedComedor(null);
+    }
+  }, [
+    filtroLocalidad,
+    filtroEstado,
+    filtroCategoria,
+    reportsData,
+  ]);
+
+  const totalReportes = reportesFiltrados.length;
+
+  const casosPrioritarios = reportesFiltrados.filter((report: any) =>
+    String(report.status || "").toLowerCase().includes("priorit")
+  ).length;
+
+  const casosAtendidos = reportesFiltrados.filter((report: any) =>
+    String(report.status || "").toLowerCase() === "atendida"
+  ).length;
+
+  const localidadesActivas = new Set(
+    reportesFiltrados
+      .map((report: any) => String(report.location || "").trim())
+      .filter(Boolean)
+  ).size;
 
   return (
     <main className="min-h-screen bg-[#0b0b0b] text-white">
@@ -317,7 +374,13 @@ export default function Home() {
                   Localidad
                 </label>
 
-                <select className="w-full rounded-xl border border-white/10 bg-[#191919] px-3 py-3 text-sm outline-none">
+                <select
+                  value={filtroLocalidad}
+                  onChange={(event) =>
+                    setFiltroLocalidad(event.target.value)
+                  }
+                  className="w-full rounded-xl border border-white/10 bg-[#191919] px-3 py-3 text-sm outline-none"
+                >
 
                   <option>
                     Todas las localidades
@@ -356,7 +419,13 @@ export default function Home() {
                   Estado
                 </label>
 
-                <select className="w-full rounded-xl border border-white/10 bg-[#191919] px-3 py-3 text-sm outline-none">
+                <select
+                  value={filtroEstado}
+                  onChange={(event) =>
+                    setFiltroEstado(event.target.value)
+                  }
+                  className="w-full rounded-xl border border-white/10 bg-[#191919] px-3 py-3 text-sm outline-none"
+                >
 
                   <option>
                     Todos los estados
@@ -379,7 +448,13 @@ export default function Home() {
                   Categoría
                 </label>
 
-                <select className="w-full rounded-xl border border-white/10 bg-[#191919] px-3 py-3 text-sm outline-none">
+                <select
+                  value={filtroCategoria}
+                  onChange={(event) =>
+                    setFiltroCategoria(event.target.value)
+                  }
+                  className="w-full rounded-xl border border-white/10 bg-[#191919] px-3 py-3 text-sm outline-none"
+                >
 
                   <option>
                     Todas las categorías
@@ -473,7 +548,7 @@ export default function Home() {
               showComedores={showComedores}
               showLimites={showLimites}
               showNombres={showNombres}
-              reports={reportsData}
+              reports={reportesFiltrados}
               onComedorSelect={handleComedorSelect}
               onReportSelect={handleReportSelect}
             />
@@ -794,7 +869,7 @@ export default function Home() {
 
           <div className="grid gap-3 md:grid-cols-3">
 
-            {reportsData.map((report) => (
+            {reportesFiltrados.map((report) => (
 
               <button
                 key={report.id}
