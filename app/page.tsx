@@ -839,7 +839,7 @@ export default function Home() {
               <p className="text-sm leading-6 text-white/60">
                 {selectedComedor
                   ? "Este comedor hace parte de la red georreferenciada de Bogotá Sin Hambre."
-                  : selectedReport.description}
+                  : selectedReport?.description || "Sin descripción disponible."}
               </p>
 
             </div>
