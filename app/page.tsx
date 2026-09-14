@@ -19,7 +19,7 @@ const reports = [
     address: "Carrera 18 # 12-45",
     date: "03 de septiembre de 2026",
     category: "Alimentación",
-    status: "Nueva",
+    status: "Pendiente",
     description:
       "La ciudadanía reporta una situación relacionada con la atención alimentaria en este sector.",
     fotografia: "",
@@ -92,6 +92,59 @@ function getDriveImageUrls(value: string = "") {
 export default function Home() {
   const [reportsData, setReportsData] = useState(reports);
   const [selectedReport, setSelectedReport] = useState(reports[0]);
+
+  const [guardandoEstado, setGuardandoEstado] = useState(false);
+
+  const cambiarEstadoReporte = async (nuevoEstado: string) => {
+    if (!selectedReport?.id) return;
+
+    const apiUrl = process.env.NEXT_PUBLIC_REPORTES_API;
+    if (!apiUrl) {
+      alert("No está configurada la conexión con Google Sheets.");
+      return;
+    }
+
+    try {
+      setGuardandoEstado(true);
+
+      const url =
+        `${apiUrl}?accion=actualizarEstado&id=${encodeURIComponent(
+          selectedReport.id
+        )}&estado=${encodeURIComponent(nuevoEstado)}`;
+
+      const response = await fetch(url);
+
+      if (!response.ok) {
+        throw new Error("No fue posible actualizar el estado.");
+      }
+
+      const data = await response.json();
+
+      if (!data.ok) {
+        throw new Error(
+          data.error || "No fue posible actualizar el estado."
+        );
+      }
+
+      setReportsData((actuales: any[]) =>
+        actuales.map((report) =>
+          report.id === selectedReport.id
+            ? { ...report, status: nuevoEstado }
+            : report
+        )
+      );
+
+      setSelectedReport((actual: any) => ({
+        ...actual,
+        status: nuevoEstado,
+      }));
+    } catch (error) {
+      console.error("ERROR ACTUALIZANDO ESTADO:", error);
+      alert("No fue posible actualizar el estado del reporte.");
+    } finally {
+      setGuardandoEstado(false);
+    }
+  };
 
   useEffect(() => {
     const apiUrl = process.env.NEXT_PUBLIC_REPORTES_API;
@@ -434,7 +487,7 @@ export default function Home() {
                     Todos los estados
                   </option>
 
-                  <option>Nueva</option>
+                  <option>Pendiente</option>
                   <option>En revisión</option>
                   <option>Atendida</option>
                   <option>Prioritaria</option>
@@ -823,7 +876,7 @@ export default function Home() {
                     title="En revisión"
                     description="Validación del informe"
                     active={
-                      selectedReport.status !== "Nueva"
+                      selectedReport.status !== "Pendiente"
                     }
                   />
 
