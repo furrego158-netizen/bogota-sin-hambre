@@ -7,7 +7,7 @@ const BogotaMap = dynamic(() => import("./components/BogotaMap"), {
   ssr: false,
 });
 
-const API_URL = "https://script.google.com/macros/s/AKfycbythH49QDgXyfeOM5KV47u2FwjwheJisJA6F3e79uREGDSv67xytEp-IgykhwVMp3L_Vg/exec";
+const API_URL = "/api/reportes";
 
 function getDriveImageUrls(value: string = "") {
   const raw = String(value).trim();
