@@ -22,6 +22,7 @@ const reports = [
     status: "Nueva",
     description:
       "La ciudadanía reporta una situación relacionada con la atención alimentaria en este sector.",
+    fotografia: "",
   },
   {
     id: 2,
@@ -33,6 +34,7 @@ const reports = [
     status: "En revisión",
     description:
       "Reporte recibido por medio del formulario ciudadano de Bogotá Sin Hambre.",
+    fotografia: "",
   },
   {
     id: 3,
@@ -44,6 +46,7 @@ const reports = [
     status: "Prioritaria",
     description:
       "La comunidad informa sobre una situación que requiere atención prioritaria.",
+    fotografia: "",
   },
 ];
 
