@@ -441,6 +441,133 @@ function ComedorClusterMarker({
 }
 
 /* =========================================================
+   CENTRO DE LOCALIDAD PARA ETIQUETAS
+========================================================= */
+
+function getFeatureCenter(feature: any): [number, number] | null {
+  const coords = feature?.geometry?.coordinates;
+
+  if (!coords) return null;
+
+  const points: number[][] = [];
+
+  const collect = (value: any) => {
+    if (
+      Array.isArray(value) &&
+      value.length >= 2 &&
+      typeof value[0] === "number" &&
+      typeof value[1] === "number"
+    ) {
+      points.push(value);
+      return;
+    }
+
+    if (Array.isArray(value)) {
+      value.forEach(collect);
+    }
+  };
+
+  collect(coords);
+
+  if (!points.length) return null;
+
+  const lng =
+    points.reduce((sum, point) => sum + point[0], 0) / points.length;
+
+  const lat =
+    points.reduce((sum, point) => sum + point[1], 0) / points.length;
+
+  return [lat, lng];
+}
+
+/* =========================================================
+   SERVICIO OFICIAL TRANSMILENIO
+========================================================= */
+
+const TRANSMILENIO_URL =
+  "https://gis.transmilenio.gov.co/arcgis/rest/services/ConsultaSubgerenciaPlanificacionSITP/Consulta_Planificacion_SITP/FeatureServer";
+
+/* =========================================================
+   LOCALIDADES OFICIALES DE BOGOTÁ
+   Fuente: Datos Abiertos Bogotá / Secretaría Distrital de Planeación
+========================================================= */
+
+const LOCALIDADES_URL =
+  "https://serviciosgis.catastrobogota.gov.co/arcgis/rest/services/ordenamientoterritorial/localidad/MapServer/0/query" +
+  "?where=1%3D1&outFields=*&returnGeometry=true&outSR=4326&f=geojson";
+
+/* =========================================================
+   CONSULTAR TRANSMILENIO
+========================================================= */
+
+async function getTransmilenioData() {
+  const routesUrl =
+    `${TRANSMILENIO_URL}/5/query` +
+    `?where=1%3D1` +
+    `&outFields=*` +
+    `&returnGeometry=true` +
+    `&outSR=4326` +
+    `&f=geojson`;
+
+  const stationsUrl =
+    `${TRANSMILENIO_URL}/2/query` +
+    `?where=1%3D1` +
+    `&outFields=*` +
+    `&returnGeometry=true` +
+    `&outSR=4326` +
+    `&f=geojson`;
+
+  const [
+    routesResponse,
+    stationsResponse,
+  ] = await Promise.all([
+    fetch(routesUrl),
+    fetch(stationsUrl),
+  ]);
+
+  if (
+    !routesResponse.ok ||
+    !stationsResponse.ok
+  ) {
+    throw new Error(
+      "No fue posible cargar TransMilenio."
+    );
+  }
+
+  const routes =
+    await routesResponse.json();
+
+  const stations =
+    await stationsResponse.json();
+
+  return {
+    routes,
+    stations,
+  };
+}
+
+/* =========================================================
+   REDIMENSIONAR MAPA
+========================================================= */
+
+function MapResize() {
+  const map = useMap();
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      map.invalidateSize();
+    }, 300);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [map]);
+
+  return null;
+}
+
+
+/* =========================================================
    MAPA
 ========================================================= */
 
