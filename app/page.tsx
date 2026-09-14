@@ -889,7 +889,7 @@ export default function Home() {
                     title="En revisión"
                     description="Validación del informe"
                     active={
-                      selectedReport.status !== "Pendiente"
+                      selectedReport?.status !== "Pendiente"
                     }
                   />
 
@@ -897,7 +897,7 @@ export default function Home() {
                     title="Atención"
                     description="Gestión del caso"
                     active={
-                      selectedReport.status === "Atendida"
+                      selectedReport?.status === "Atendida"
                     }
                   />
 
