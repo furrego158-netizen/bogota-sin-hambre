@@ -7,48 +7,7 @@ const BogotaMap = dynamic(() => import("./components/BogotaMap"), {
   ssr: false,
 });
 
-/* =========================================================
-   REPORTES DE PRUEBA
-========================================================= */
-
-const reports = [
-  {
-    id: 1,
-    title: "Situación reportada en comedor",
-    location: "Los Mártires",
-    address: "Carrera 18 # 12-45",
-    date: "03 de septiembre de 2026",
-    category: "Alimentación",
-    status: "Pendiente",
-    description:
-      "La ciudadanía reporta una situación relacionada con la atención alimentaria en este sector.",
-    fotografia: "",
-  },
-  {
-    id: 2,
-    title: "Reporte ciudadano",
-    location: "Teusaquillo",
-    address: "Calle 45 # 20-18",
-    date: "02 de septiembre de 2026",
-    category: "Comedor comunitario",
-    status: "En revisión",
-    description:
-      "Reporte recibido por medio del formulario ciudadano de Bogotá Sin Hambre.",
-    fotografia: "",
-  },
-  {
-    id: 3,
-    title: "Situación alimentaria",
-    location: "Ciudad Bolívar",
-    address: "Carrera 50 # 68-32 Sur",
-    date: "01 de septiembre de 2026",
-    category: "Hambre",
-    status: "Prioritaria",
-    description:
-      "La comunidad informa sobre una situación que requiere atención prioritaria.",
-    fotografia: "",
-  },
-];
+const API_URL = "https://script.google.com/macros/s/AKfycbythH49QDgXyfeOM5KV47u2FwjwheJisJA6F3e79uREGDSv67xytEp-IgykhwVMp3L_Vg/exec";
 
 function getDriveImageUrls(value: string = "") {
   const raw = String(value).trim();
@@ -90,29 +49,27 @@ function getDriveImageUrls(value: string = "") {
 ========================================================= */
 
 export default function Home() {
-  const [reportsData, setReportsData] = useState(reports);
-  const [selectedReport, setSelectedReport] = useState(reports[0]);
+  const [reportsData, setReportsData] = useState<any[]>([]);
+  const [selectedReport, setSelectedReport] = useState<any>(null);
 
   const [guardandoEstado, setGuardandoEstado] = useState(false);
+  const [cargandoReportes, setCargandoReportes] = useState(true);
 
   const cambiarEstadoReporte = async (nuevoEstado: string) => {
     if (!selectedReport?.id) return;
-
-    const apiUrl = process.env.NEXT_PUBLIC_REPORTES_API;
-    if (!apiUrl) {
-      alert("No está configurada la conexión con Google Sheets.");
-      return;
-    }
 
     try {
       setGuardandoEstado(true);
 
       const url =
-        `${apiUrl}?accion=actualizarEstado&id=${encodeURIComponent(
+        `${API_URL}?accion=actualizarEstado&id=${encodeURIComponent(
           selectedReport.id
-        )}&estado=${encodeURIComponent(nuevoEstado)}`;
+        )}&estado=${encodeURIComponent(nuevoEstado)}&t=${Date.now()}`;
 
-      const response = await fetch(url);
+      const response = await fetch(url, {
+        method: "GET",
+        cache: "no-store",
+      });
 
       if (!response.ok) {
         throw new Error("No fue posible actualizar el estado.");
@@ -134,10 +91,14 @@ export default function Home() {
         )
       );
 
-      setSelectedReport((actual: any) => ({
-        ...actual,
-        status: nuevoEstado,
-      }));
+      setSelectedReport((actual: any) =>
+        actual
+          ? {
+              ...actual,
+              status: nuevoEstado,
+            }
+          : actual
+      );
     } catch (error) {
       console.error("ERROR ACTUALIZANDO ESTADO:", error);
       alert("No fue posible actualizar el estado del reporte.");
@@ -147,24 +108,23 @@ export default function Home() {
   };
 
   useEffect(() => {
-    const apiUrl = process.env.NEXT_PUBLIC_REPORTES_API;
+    const cargarReportes = async () => {
+      try {
+        setCargandoReportes(true);
 
-    if (!apiUrl) {
-      console.warn("NEXT_PUBLIC_REPORTES_API no está configurada.");
-      return;
-    }
+        const response = await fetch(`${API_URL}?t=${Date.now()}`, {
+          method: "GET",
+          cache: "no-store",
+        });
 
-    fetch(apiUrl)
-      .then((response) => {
         if (!response.ok) {
           throw new Error("No fue posible cargar los reportes.");
         }
-        return response.json();
-      })
-      .then((data) => {
-        if (!Array.isArray(data) || data.length === 0) {
-          console.log("No hay reportes publicados en Google Sheets.");
-          return;
+
+        const data = await response.json();
+
+        if (!Array.isArray(data)) {
+          throw new Error("La respuesta de Google Sheets no es válida.");
         }
 
         const reportesConvertidos = data.map((item: any) => ({
@@ -192,12 +152,31 @@ export default function Home() {
         }));
 
         setReportsData(reportesConvertidos);
-        setSelectedReport(reportesConvertidos[0]);
-        console.log("REPORTES GOOGLE SHEETS CARGADOS:", reportesConvertidos);
-      })
-      .catch((error) => {
+
+        setSelectedReport((actual: any) => {
+          if (!reportesConvertidos.length) return null;
+
+          const mismoReporte = reportesConvertidos.find(
+            (report: any) => report.id === actual?.id
+          );
+
+          return mismoReporte || reportesConvertidos[0];
+        });
+
+        console.log(
+          "REPORTES GOOGLE SHEETS CARGADOS:",
+          reportesConvertidos
+        );
+      } catch (error) {
         console.error("ERROR REPORTES GOOGLE SHEETS:", error);
-      });
+        setReportsData([]);
+        setSelectedReport(null);
+      } finally {
+        setCargandoReportes(false);
+      }
+    };
+
+    cargarReportes();
   }, []);
 
   const [selectedComedor, setSelectedComedor] = useState<any>(null);
@@ -705,7 +684,12 @@ export default function Home() {
                 </p>
 
                 <h3 className="mt-2 text-xl font-bold">
-                  {selectedComedor ? selectedComedor.name : selectedReport.title}
+                  {selectedComedor
+                    ? selectedComedor.name
+                    : selectedReport?.title ||
+                      (cargandoReportes
+                        ? "Cargando informes..."
+                        : "No hay informes disponibles")}
                 </h3>
               </div>
 
@@ -733,14 +717,14 @@ export default function Home() {
                     La fotografía se vinculará en la siguiente etapa.
                   </p>
                 </div>
-              ) : selectedReport.fotografia ? (
+              ) : selectedReport?.fotografia ? (
                 <img
-                  src={getDriveImageUrls(selectedReport.fotografia)[0] || ""}
+                  src={getDriveImageUrls(selectedReport?.fotografia || "")[0] || ""}
                   alt="Fotografía del informe ciudadano"
                   className="h-full w-full object-cover"
                   onError={(event) => {
                     const image = event.currentTarget;
-                    const urls = getDriveImageUrls(selectedReport.fotografia);
+                    const urls = getDriveImageUrls(selectedReport?.fotografia || "");
                     const currentIndex = Number(image.dataset.driveAttempt || "0");
                     const nextIndex = currentIndex + 1;
 
@@ -786,7 +770,7 @@ export default function Home() {
                   value={`${selectedComedor.lat.toFixed(6)}, ${selectedComedor.lng.toFixed(6)}`}
                 />
               </div>
-            ) : (
+            ) : selectedReport ? (
               <div className="space-y-4">
                 <InfoRow
                   label="Ubicación"
@@ -808,10 +792,39 @@ export default function Home() {
                   value={selectedReport.category}
                 />
 
-                <InfoRow
-                  label="Estado"
-                  value={selectedReport.status}
-                />
+                <div>
+                  <p className="text-[10px] font-semibold uppercase tracking-widest text-white/25">
+                    Estado
+                  </p>
+
+                  <select
+                    value={selectedReport.status || "Pendiente"}
+                    onChange={(event) =>
+                      cambiarEstadoReporte(event.target.value)
+                    }
+                    disabled={guardandoEstado || !selectedReport.id}
+                    className="mt-2 w-full rounded-xl border border-white/10 bg-[#191919] px-3 py-3 text-sm text-white outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <option value="Pendiente">Pendiente</option>
+                    <option value="En revisión">En revisión</option>
+                    <option value="Atendida">Atendida</option>
+                    <option value="Prioritaria">Prioritaria</option>
+                  </select>
+
+                  {guardandoEstado && (
+                    <p className="mt-2 text-xs text-white/40">
+                      Guardando estado...
+                    </p>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+                <p className="text-sm text-white/50">
+                  {cargandoReportes
+                    ? "Cargando reportes desde Google Sheets..."
+                    : "No hay reportes disponibles."}
+                </p>
               </div>
             )}
 
@@ -933,7 +946,7 @@ export default function Home() {
                   handleReportSelect(report)
                 }
                 className={`rounded-xl border p-4 text-left transition ${
-                  selectedReport.id === report.id
+                  selectedReport?.id === report.id
                     ? "border-[#7a4b2a] bg-[#7a4b2a]/10"
                     : "border-white/10 bg-white/[0.02] hover:bg-white/[0.05]"
                 }`}
