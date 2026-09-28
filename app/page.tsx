@@ -190,15 +190,17 @@ export default function Home() {
     setSelectedReport(report);
   };
 
-  const [showReports, setShowReports] = useState(true);
+  const [showReports, setShowReports] = useState(false);
 
-  const [showTransmi, setShowTransmi] = useState(true);
+  const [showTransmi, setShowTransmi] = useState(false);
 
-  const [showComedores, setShowComedores] = useState(true);
+  const [showComedores, setShowComedores] = useState(false);
 
-  const [showLimites, setShowLimites] = useState(true);
+  const [showLimites, setShowLimites] = useState(false);
 
-  const [showNombres, setShowNombres] = useState(true);
+  const [showNombres, setShowNombres] = useState(false);
+
+  const [mostrarAviso, setMostrarAviso] = useState(true);
 
   /* =========================================================
      FILTROS DEL EXPLORADOR DE INFORMES
@@ -275,6 +277,78 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-[#0b0b0b] text-white">
+
+      {mostrarAviso && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 px-4 py-6 backdrop-blur-sm">
+          <div className="w-full max-w-3xl overflow-hidden rounded-2xl border border-white/10 bg-white text-black shadow-2xl">
+            <div className="flex items-center justify-between bg-[#c8102e] px-6 py-5 text-white">
+              <div>
+                <p className="text-lg font-extrabold tracking-tight">
+                  SAAVEDRA
+                </p>
+                <p className="text-[11px] font-semibold tracking-[0.18em] text-white/80">
+                  CONCEJAL DE BOGOTÁ
+                </p>
+              </div>
+
+              <div className="flex h-11 w-11 items-center justify-center rounded-full border-2 border-white/70 text-2xl font-bold">
+                !
+              </div>
+            </div>
+
+            <div className="max-h-[70vh] overflow-y-auto px-6 py-6 sm:px-8">
+              <div className="mb-5 flex items-center gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#c8102e] text-xl font-bold text-white">
+                  !
+                </div>
+                <h2 className="text-xl font-extrabold uppercase tracking-tight text-[#c8102e] sm:text-2xl">
+                  AVISO IMPORTANTE
+                </h2>
+              </div>
+
+              <div className="space-y-4 text-sm leading-6 text-black/75">
+                <p>
+                  Este aplicativo es exclusivamente informativo.
+                </p>
+
+                <p>
+                  La información publicada no gestiona ni garantiza cupos en los
+                  comedores, ni representa a las entidades prestadoras del servicio.
+                </p>
+
+                <p>
+                  Los datos registrados no serán utilizados con fines políticos,
+                  electorales o proselitistas.
+                </p>
+
+                <p>
+                  Esta información será usada por el equipo del concejal David
+                  Saavedra para confirmar la veracidad de las denuncias y de ser el
+                  caso orientar a las personas en situación de riesgo para acceder a
+                  los servicios.
+                </p>
+
+                <p>
+                  Al continuar usted acepta que ha entendido toda esta información
+                  que se ve en este formulario, y entiende el uso que se le dará a
+                  estos datos por el equipo del concejal y las correspondientes
+                  actividades que hará la oficina del concejal David Saavedra.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex justify-end bg-[#c8102e] px-6 py-4">
+              <button
+                type="button"
+                onClick={() => setMostrarAviso(false)}
+                className="rounded-xl bg-white px-7 py-3 text-sm font-extrabold text-[#c8102e] transition hover:bg-white/90"
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ===================================================
           HEADER
