@@ -29,6 +29,8 @@ interface BogotaMapProps {
   onComedorSelect?: (comedor: any) => void;
   reports?: any[];
   onReportSelect?: (report: any) => void;
+  selectedLocalidad?: string;
+  onLocalidadSelect?: (localidad: string) => void;
 }
 
 /* =========================================================
@@ -145,6 +147,29 @@ function getLocalidadColor(localidad: string) {
   );
 
   return match ? LOCALIDAD_COLORS[match] : "#7A4B2A";
+}
+
+/* Usa el color publicado en los datos de origen si existe.
+   Si el servicio no trae un color, conserva el rojo institucional;
+   no asigna colores de troncales por suposiciones. */
+function getRouteColor(properties: any) {
+  const candidates = [
+    properties?.color,
+    properties?.COLOR,
+    properties?.Color,
+    properties?.color_troncal,
+    properties?.COLOR_TRONCAL,
+    properties?.color_linea,
+    properties?.COLOR_LINEA,
+  ];
+
+  for (const candidate of candidates) {
+    if (typeof candidate === "string" && /^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i.test(candidate.trim())) {
+      return candidate.trim();
+    }
+  }
+
+  return "#C8102E";
 }
 
 function getLocalidadName(properties: any, fallback = "Localidad") {
@@ -580,6 +605,8 @@ export default function BogotaMap({
   onComedorSelect,
   reports: reportsFromPage = reports,
   onReportSelect,
+  selectedLocalidad,
+  onLocalidadSelect,
 }: BogotaMapProps) {
 
   const [
@@ -601,6 +628,10 @@ export default function BogotaMap({
   ] = useState(false);
 
   const [localidades, setLocalidades] = useState<any>(null);
+
+  const [localidadActiva, setLocalidadActiva] = useState("");
+
+  const localidadSeleccionada = selectedLocalidad || localidadActiva;
 
   const [mapZoom, setMapZoom] = useState(11.5);
 
@@ -723,12 +754,24 @@ export default function BogotaMap({
               <GeoJSON
                 key={`localidad-${index}`}
                 data={feature}
-                style={{
-                  color,
-                  weight: 1.5,
-                  opacity: 0.75,
-                  fillColor: color,
-                  fillOpacity: 0.11,
+                style={() => {
+                  const isSelected =
+                    normalizeLocalidad(localidadSeleccionada) ===
+                    normalizeLocalidad(localidad);
+
+                  return {
+                    color: isSelected ? "#111827" : color,
+                    weight: isSelected ? 3.5 : 1.5,
+                    opacity: isSelected ? 1 : 0.75,
+                    fillColor: color,
+                    fillOpacity: isSelected ? 0.32 : 0.11,
+                  };
+                }}
+                eventHandlers={{
+                  click: () => {
+                    setLocalidadActiva(localidad);
+                    onLocalidadSelect?.(localidad);
+                  },
                 }}
               />
             );
@@ -1125,7 +1168,7 @@ export default function BogotaMap({
                       key={`route-${index}-${lineIndex}`}
                       positions={positions}
                       pathOptions={{
-                        color: "#C8102E",
+                        color: getRouteColor(route.properties),
                         weight: 5,
                         opacity: 0.9,
                       }}
