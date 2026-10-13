@@ -266,8 +266,16 @@ export default function Home() {
   ).length;
 
   const casosAtendidos = reportesFiltrados.filter((report: any) =>
-    String(report.status || "").toLowerCase() === "atendida"
+    String(report.status || "").trim().toLowerCase() === "atendida"
   ).length;
+
+  const casosPendientes = reportesFiltrados.filter((report: any) =>
+    String(report.status || "").trim().toLowerCase() === "pendiente"
+  ).length;
+
+  const porcentajeAtencion = totalReportes > 0
+    ? Math.round((casosAtendidos / totalReportes) * 100)
+    : 0;
 
   const localidadesActivas = new Set(
     reportesFiltrados
@@ -417,7 +425,7 @@ export default function Home() {
             KPIs
         ================================================= */}
 
-        <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
 
           <Kpi
             title="Reportes recibidos"
@@ -438,6 +446,20 @@ export default function Home() {
             value={casosAtendidos.toLocaleString("es-CO")}
             change="Estado actual"
             icon="✓"
+          />
+
+          <Kpi
+            title="Casos pendientes"
+            value={casosPendientes.toLocaleString("es-CO")}
+            change="Por gestionar"
+            icon="⏳"
+          />
+
+          <Kpi
+            title="Porcentaje de atención"
+            value={`${porcentajeAtencion}%`}
+            change="Sobre los reportes filtrados"
+            icon="📊"
           />
 
           <Kpi
@@ -605,14 +627,6 @@ export default function Home() {
                     }
                   />
 
-                  <LayerToggle
-                    label="🍽️ Comedores comunitarios"
-                    active={showComedores}
-                    onClick={() =>
-                      setShowComedores(!showComedores)
-                    }
-                  />
-
                   <div className="border-t border-white/10 pt-4">
                     <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-white/30">
                       Opciones del mapa
@@ -654,7 +668,7 @@ export default function Home() {
             <BogotaMap
               showReports={showReports}
               showTransmi={showTransmi}
-              showComedores={showComedores}
+              showComedores={false}
               showLimites={showLimites}
               showNombres={showNombres}
               reports={reportesFiltrados}
@@ -717,13 +731,6 @@ export default function Home() {
 
                 </div>
 
-              )}
-
-              {showComedores && (
-                <div className="mt-2 flex items-center gap-2 text-xs">
-                  <span className="text-lg">🍽️</span>
-                  <span>Comedor comunitario</span>
-                </div>
               )}
 
               {showLimites && (
