@@ -210,30 +210,76 @@ function createComedorIcon(localidad: string) {
    ESTACIÓN TRANSMILENIO
 ========================================================= */
 
-const stationIcon = L.divIcon({
-  className: "",
+function getTroncalColor(properties: any = {}) {
+  const palette: Record<string, string> = {
+    A: "#D71920",
+    B: "#1769AA",
+    C: "#159447",
+    D: "#8E44AD",
+    E: "#E67E22",
+    F: "#008C95",
+    G: "#C2185B",
+    H: "#6D4C41",
+    J: "#3949AB",
+    K: "#7CB342",
+    L: "#F9A825",
+    M: "#5C6BC0",
+    N: "#00ACC1",
+    P: "#AD1457",
+    T: "#546E7A",
+  };
 
-  html: `
-    <div
-      style="
+  const entries = Object.entries(properties || {});
+  const trunkEntry = entries.find(([key, value]) =>
+    /le_tronc|nom_tronc|troncal|linea|trazado/i.test(key) &&
+    value !== null &&
+    value !== undefined &&
+    String(value).trim() !== ""
+  );
+
+  const raw = trunkEntry ? String(trunkEntry[1]).trim().toUpperCase() : "";
+  const letterMatch = raw.match(/\b([A-Z])\b/);
+  const letter = letterMatch?.[1] || (raw.length === 1 ? raw : "");
+
+  if (letter && palette[letter]) return palette[letter];
+
+  const explicitColor = entries.find(([key, value]) =>
+    /color/i.test(key) &&
+    typeof value === "string" &&
+    /^#([0-9A-F]{3}|[0-9A-F]{6})$/i.test(value.trim())
+  );
+  if (explicitColor) return String(explicitColor[1]).trim();
+
+  if (raw) {
+    let hash = 0;
+    for (let i = 0; i < raw.length; i++) {
+      hash = (hash * 31 + raw.charCodeAt(i)) | 0;
+    }
+    const colors = Object.values(palette);
+    return colors[Math.abs(hash) % colors.length];
+  }
+
+  return "#C8102E";
+}
+
+function createStationIcon(color: string) {
+  return L.divIcon({
+    className: "",
+    html: `
+      <div style="
         width:17px;
         height:17px;
-        background:#C8102E;
+        background:${color};
         border:3px solid white;
         border-radius:50%;
-        box-shadow:
-          0 2px 6px rgba(0,0,0,.45),
-          0 0 0 2px rgba(200,16,46,.20);
-      "
-    ></div>
-  `,
-
-  iconSize: [17, 17],
-
-  iconAnchor: [8.5, 8.5],
-
-  popupAnchor: [0, -10],
-});
+        box-shadow:0 2px 6px rgba(0,0,0,.45), 0 0 0 2px ${color}33;
+      "></div>
+    `,
+    iconSize: [17, 17],
+    iconAnchor: [8.5, 8.5],
+    popupAnchor: [0, -10],
+  });
+}
 
 /* =========================================================
    REPORTES DE PRUEBA
@@ -1125,7 +1171,7 @@ export default function BogotaMap({
                       key={`route-${index}-${lineIndex}`}
                       positions={positions}
                       pathOptions={{
-                        color: "#C8102E",
+                        color: getTroncalColor(route.properties),
                         weight: 5,
                         opacity: 0.9,
                       }}
@@ -1179,7 +1225,7 @@ export default function BogotaMap({
                     latitude,
                     longitude,
                   ]}
-                  icon={stationIcon}
+                  icon={createStationIcon(getTroncalColor(station.properties))}
                 >
 
                   {/* =================================================
@@ -1200,7 +1246,7 @@ export default function BogotaMap({
                       style={{
                         fontWeight: 700,
                         fontSize: "12px",
-                        color: "#8F1026",
+                        color: getTroncalColor(station.properties),
                         whiteSpace:
                           "nowrap",
                       }}
@@ -1234,9 +1280,9 @@ export default function BogotaMap({
                           borderRadius:
                             "999px",
                           background:
-                            "#FBE7EA",
+                            `${getTroncalColor(station.properties)}22`,
                           color:
-                            "#C8102E",
+                            getTroncalColor(station.properties),
                           fontSize:
                             "10px",
                           fontWeight:
@@ -1370,12 +1416,12 @@ export default function BogotaMap({
                   borderRadius:
                     "999px",
                   background:
-                    "#C8102E",
+                    "linear-gradient(90deg, #D71920, #1769AA, #159447, #8E44AD, #E67E22)",
                 }}
               />
 
               <span>
-                TransMilenio
+                Troncales por color
               </span>
 
             </div>
@@ -1391,16 +1437,16 @@ export default function BogotaMap({
                   borderRadius:
                     "50%",
                   background:
-                    "#C8102E",
+                    "#1769AA",
                   border:
                     "2px solid white",
                   boxShadow:
-                    "0 0 0 1px #C8102E",
+                    "0 0 0 1px #1769AA",
                 }}
               />
 
               <span>
-                Estación
+                Estación (color de su troncal)
               </span>
 
             </div>
