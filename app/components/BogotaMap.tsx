@@ -62,7 +62,7 @@ const spoonIcon = L.divIcon({
           cy="11"
           rx="10"
           ry="12"
-          fill="#7A4B2A"
+          fill="#E60026"
         />
 
         <ellipse
@@ -70,7 +70,7 @@ const spoonIcon = L.divIcon({
           cy="7"
           rx="3"
           ry="4"
-          fill="#A97850"
+          fill="#FFD21F"
           opacity=".75"
         />
 
@@ -80,14 +80,14 @@ const spoonIcon = L.divIcon({
           width="6"
           height="25"
           rx="3"
-          fill="#7A4B2A"
+          fill="#E60026"
         />
 
         <circle
           cx="19"
           cy="45"
           r="3"
-          fill="#7A4B2A"
+          fill="#E60026"
         />
 
       </svg>
@@ -483,6 +483,37 @@ function getFeatureCenter(feature: any): [number, number] | null {
 /* =========================================================
    SERVICIO OFICIAL TRANSMILENIO
 ========================================================= */
+
+/* =========================================================
+   COLORES VISUALES PARA TRONCALES
+   Se usa el nombre/letra de troncal entregado por el GIS oficial.
+   La cartografía base conserva sus colores naturales.
+========================================================= */
+function getTroncalColor(route: any, index: number): string {
+  const properties = route?.properties || {};
+  const rawName = [
+    properties.nom_tronc,
+    properties.NOM_TRONC,
+    properties.le_troncal,
+    properties.LE_TRONCAL,
+    properties.nom_traz,
+    properties.NOM_TRAZ,
+  ].filter(Boolean).join(" ");
+  const name = String(rawName)
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toUpperCase();
+
+  // Mantener la identidad visual solicitada: amarillo y rojo.
+  const yellowTerms = ["NORTE", "SUBA", "CALLE 80", "CARRERA 7", "CARRERA SEPTIMA", "AUTONORTE"];
+  const redTerms = ["AMERICAS", "CARACAS", "NQS", "CALLE 26", "TUNAL", "PORTAL SUR", "AUTOPISTA SUR"];
+
+  if (yellowTerms.some((term) => name.includes(term))) return "#FFD21F";
+  if (redTerms.some((term) => name.includes(term))) return "#E60026";
+
+  // Fallback estable cuando el servicio no devuelve un nombre reconocible.
+  return index % 2 === 0 ? "#E60026" : "#FFD21F";
+}
 
 const TRANSMILENIO_URL =
   "https://gis.transmilenio.gov.co/arcgis/rest/services/ConsultaSubgerenciaPlanificacionSITP/Consulta_Planificacion_SITP/FeatureServer";
@@ -1072,6 +1103,7 @@ export default function BogotaMap({
 
               const geometry =
                 route.geometry;
+              const routeColor = getTroncalColor(route, index);
 
               if (!geometry) {
                 return null;
@@ -1125,9 +1157,11 @@ export default function BogotaMap({
                       key={`route-${index}-${lineIndex}`}
                       positions={positions}
                       pathOptions={{
-                        color: "#C8102E",
+                        color: routeColor,
                         weight: 5,
-                        opacity: 0.9,
+                        opacity: 0.96,
+                        lineCap: "round",
+                        lineJoin: "round",
                       }}
                     />
 
