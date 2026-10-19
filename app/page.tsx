@@ -408,6 +408,19 @@ export default function Home() {
 
       <section className="px-8 py-7">
 
+        {/* PANORÁMICA DE BOGOTÁ: imagen almacenada en /public */}
+        <div className="mb-7 w-full overflow-hidden rounded-2xl border border-white/10 bg-[#111111] shadow-2xl">
+          <img
+            src="/Panorámica_Bogotá_Sombrilla.png"
+            alt="Panorámica de Bogotá con los cerros orientales y la ciudad"
+            className="block h-auto max-h-[420px] w-full object-cover object-center"
+            onError={(event) => {
+              console.error("No se pudo cargar la panorámica de Bogotá. Verifica el nombre del archivo en public.");
+              event.currentTarget.style.display = "none";
+            }}
+          />
+        </div>
+
         <div className="mb-6">
 
           <h2 className="text-3xl font-bold tracking-tight">
