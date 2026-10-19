@@ -284,37 +284,68 @@ export default function Home() {
   ).size;
 
   return (
-    <main className="min-h-screen bg-[#0b0b0b] text-white">
+    <main className="dashboard-root min-h-screen bg-[#ffd63b] text-[#8b0015]">
+      <style jsx global>{`
+        .dashboard-root { background: linear-gradient(180deg,#ffdc35 0%,#ffe990 45%,#ffcf24 100%) !important; color:#8d0018 !important; }
+        .dashboard-root .dashboard-content > div:first-child p { color:#8d0018 !important; }
+        .dashboard-root .site-header { background: linear-gradient(100deg,#a9001b 0%,#e60026 54%,#ffcc24 100%) !important; border-bottom:4px solid #ffcf25 !important; }
+        .dashboard-root .header-logo { display:block; width:min(340px,48vw); max-height:78px; object-fit:contain; }
+        .dashboard-root .kpi-card { background:linear-gradient(135deg,#ffe34b,#ffcf22) !important; border:2px solid #e60026 !important; color:#930018 !important; box-shadow:0 5px 12px rgba(150,0,20,.14); }
+        .dashboard-root .kpi-card * { color:#930018 !important; }
+        .dashboard-root .filters-panel, .dashboard-root .selected-panel, .dashboard-root .recent-panel { background:linear-gradient(155deg,#d90024 0%,#a9001b 100%) !important; border:2px solid #ffcf25 !important; color:#ffe66b !important; }
+        .dashboard-root .filters-panel *, .dashboard-root .selected-panel *, .dashboard-root .recent-panel * { border-color:rgba(255,218,45,.5); }
+        .dashboard-root .filters-panel h3, .dashboard-root .filters-panel p, .dashboard-root .filters-panel label, .dashboard-root .filters-panel span,
+        .dashboard-root .selected-panel h3, .dashboard-root .selected-panel p, .dashboard-root .selected-panel label, .dashboard-root .selected-panel span,
+        .dashboard-root .recent-panel h3, .dashboard-root .recent-panel p, .dashboard-root .recent-panel span { color:#ffe66b !important; }
+        .dashboard-root .filters-panel select, .dashboard-root .filters-panel input, .dashboard-root .selected-panel select { background:#ffe36a !important; color:#8d0018 !important; border:1px solid #ffbd16 !important; }
+        .dashboard-root .filters-panel option, .dashboard-root .selected-panel option { background:#ffe36a; color:#8d0018; }
+        .dashboard-root .layer-toggle { background:#ffdf43 !important; border:1px solid #ffbd16 !important; color:#8d0018 !important; }
+        .dashboard-root .layer-toggle > span:first-child { color:#8d0018 !important; }
+        .dashboard-root .layer-toggle > span:last-child { background:#b90020 !important; }
+        .dashboard-root .layer-toggle > span:last-child > span { background:#ffdf43 !important; }
+        .dashboard-root .map-panel { border:3px solid #ffcf25 !important; background:#e8d8a5 !important; }
+        .dashboard-root .map-title { background:rgba(180,0,28,.96) !important; border:1px solid #ffcf25 !important; color:#ffe34a !important; }
+        .dashboard-root .map-title * { color:#ffe34a !important; }
+        .dashboard-root .map-legend { background:#ffdf43 !important; border:2px solid #e60026 !important; color:#8d0018 !important; }
+        .dashboard-root .map-legend * { color:#8d0018 !important; }
+        .dashboard-root .panorama-footer { border:3px solid #e60026; border-radius:18px; overflow:hidden; background:#ffdc35; box-shadow:0 8px 24px rgba(145,0,20,.18); }
+        .dashboard-root .panorama-footer img { display:block; width:100%; height:clamp(145px,18vw,245px); object-fit:cover; object-position:center; }
+        .dashboard-root .site-header button { background:#ffdf32 !important; color:#990018 !important; border:2px solid #990018 !important; }
+        .dashboard-root .site-header .status-pill { background:#ffdf32 !important; color:#990018 !important; border:1px solid #990018 !important; }
+        .dashboard-root .leaflet-bar a { background:#ffdf43 !important; color:#a5001b !important; border-color:#e60026 !important; }
+        .dashboard-root .leaflet-control-attribution { background:rgba(255,223,67,.92) !important; color:#8d0018 !important; }
+        @media (max-width: 1279px) { .dashboard-root .header-logo { width:min(300px,55vw); } }
+      `}</style>
 
       {mostrarAviso && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 px-4 py-6 backdrop-blur-sm">
-          <div className="w-full max-w-3xl overflow-hidden rounded-2xl border border-white/10 bg-white text-black shadow-2xl">
-            <div className="flex items-center justify-between bg-[#c8102e] px-6 py-5 text-white">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#a9001b]/85 px-4 py-6 backdrop-blur-sm">
+          <div className="w-full max-w-3xl overflow-hidden rounded-2xl border border-[#ffcf25] bg-[#ffdf43] text-[#8d0018] shadow-2xl">
+            <div className="flex items-center justify-between bg-[#b9001c] px-6 py-5 text-[#ffe66b]">
               <div>
                 <p className="text-lg font-extrabold tracking-tight">
                   SAAVEDRA
                 </p>
-                <p className="text-[11px] font-semibold tracking-[0.18em] text-white/80">
+                <p className="text-[11px] font-semibold tracking-[0.18em] text-[#ffe66b]">
                   CONCEJAL DE BOGOTÁ
                 </p>
               </div>
 
-              <div className="flex h-11 w-11 items-center justify-center rounded-full border-2 border-white/70 text-2xl font-bold">
+              <div className="flex h-11 w-11 items-center justify-center rounded-full border-2 border-[#ffcf25] text-2xl font-bold">
                 !
               </div>
             </div>
 
             <div className="max-h-[70vh] overflow-y-auto px-6 py-6 sm:px-8">
               <div className="mb-5 flex items-center gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#c8102e] text-xl font-bold text-white">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#b9001c] text-xl font-bold text-[#ffe66b]">
                   !
                 </div>
-                <h2 className="text-xl font-extrabold uppercase tracking-tight text-[#c8102e] sm:text-2xl">
+                <h2 className="text-xl font-extrabold uppercase tracking-tight text-[#b9001c] sm:text-2xl">
                   AVISO IMPORTANTE
                 </h2>
               </div>
 
-              <div className="space-y-4 text-sm leading-6 text-black/75">
+              <div className="space-y-4 text-sm leading-6 text-[#8d0018]">
                 <p>
                   Este aplicativo es exclusivamente informativo.
                 </p>
@@ -345,11 +376,11 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="flex justify-end bg-[#c8102e] px-6 py-4">
+            <div className="flex justify-end bg-[#b9001c] px-6 py-4">
               <button
                 type="button"
                 onClick={() => setMostrarAviso(false)}
-                className="rounded-xl bg-white px-7 py-3 text-sm font-extrabold text-[#c8102e] transition hover:bg-white/90"
+                className="rounded-xl bg-[#ffdf32] px-7 py-3 text-sm font-extrabold text-[#990018] transition hover:brightness-105"
               >
                 Cerrar
               </button>
@@ -362,37 +393,28 @@ export default function Home() {
           HEADER
       =================================================== */}
 
-      <header className="border-b border-white/10 bg-[#111111]">
+      <header className="site-header">
 
         <div className="flex items-center justify-between px-8 py-5">
 
-          <div className="flex items-center gap-3">
-
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#7a4b2a] text-2xl">
-              🥄
-            </div>
-
-            <div>
-
-              <h1 className="text-xl font-bold tracking-tight">
-                BOGOTÁ SIN HAMBRE
-              </h1>
-
-              <p className="text-xs text-white/40">
-                Sistema ciudadano de alertas alimentarias
-              </p>
-
-            </div>
-
+          <div className="flex min-w-0 items-center gap-4">
+            <img
+              src="/LogoSaavedra-ContraElHambre.png"
+              alt="Saavedra. Lucha contra el hambre"
+              className="header-logo"
+            />
+            <p className="hidden border-l-2 border-[#ffdc35] pl-4 text-sm font-semibold text-[#ffe66b] lg:block">
+              Sistema ciudadano de alertas alimentarias
+            </p>
           </div>
 
           <div className="flex items-center gap-3">
 
-            <div className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs text-white/60">
+            <div className="status-pill rounded-full border border-[#ffcf25]/70 bg-[#ffdf43] px-4 py-2 text-xs text-[#ffe66b]">
               ● Sistema activo
             </div>
 
-            <button className="rounded-xl bg-white px-4 py-2 text-sm font-semibold text-black transition hover:bg-white/90">
+            <button className="rounded-xl bg-[#ffdf32] px-4 py-2 text-sm font-extrabold text-[#990018] transition hover:brightness-105">
               Nuevo reporte
             </button>
 
@@ -406,28 +428,15 @@ export default function Home() {
           CONTENIDO
       =================================================== */}
 
-      <section className="px-8 py-7">
+      <section className="dashboard-content px-4 py-4 sm:px-5 sm:py-5 xl:px-6">
 
-        {/* PANORÁMICA DE BOGOTÁ: imagen almacenada en /public */}
-        <div className="mb-7 w-full overflow-hidden rounded-2xl border border-white/10 bg-[#111111] shadow-2xl">
-          <img
-            src="/Panorámica_Bogotá_Sombrilla.png"
-            alt="Panorámica de Bogotá con los cerros orientales y la ciudad"
-            className="block h-auto max-h-[420px] w-full object-cover object-center"
-            onError={(event) => {
-              console.error("No se pudo cargar la panorámica de Bogotá. Verifica el nombre del archivo en public.");
-              event.currentTarget.style.display = "none";
-            }}
-          />
-        </div>
-
-        <div className="mb-6">
+        <div className="mb-5">
 
           <h2 className="text-3xl font-bold tracking-tight">
             Panorama de Bogotá
           </h2>
 
-          <p className="mt-1 text-sm text-white/40">
+          <p className="mt-1 text-sm text-[#ffe66b]">
             Visualización geográfica de reportes ciudadanos relacionados
             con hambre y alimentación.
           </p>
@@ -438,7 +447,7 @@ export default function Home() {
             KPIs
         ================================================= */}
 
-        <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="kpi-grid mb-5 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6">
 
           <Kpi
             title="Reportes recibidos"
@@ -488,17 +497,17 @@ export default function Home() {
             DASHBOARD
         ================================================= */}
 
-        <div className="grid min-h-[650px] grid-cols-1 gap-5 xl:grid-cols-[250px_1fr_330px]">
+        <div className="dashboard-grid grid min-h-[600px] grid-cols-1 gap-4 xl:grid-cols-[280px_minmax(0,1fr)_330px]">
 
           {/* =================================================
               FILTROS
           ================================================= */}
 
-          <aside className="rounded-2xl border border-white/10 bg-[#111111] p-5">
+          <aside className="filters-panel rounded-2xl border border-[#ffcf25]/70 bg-[#b9001c] p-4">
 
             <div className="mb-6">
 
-              <p className="text-xs font-semibold uppercase tracking-widest text-white/30">
+              <p className="text-xs font-semibold uppercase tracking-widest text-[#ffe66b]">
                 Filtros
               </p>
 
@@ -514,7 +523,7 @@ export default function Home() {
 
               <div>
 
-                <label className="mb-2 block text-xs text-white/40">
+                <label className="mb-2 block text-xs text-[#ffe66b]">
                   Localidad
                 </label>
 
@@ -523,7 +532,7 @@ export default function Home() {
                   onChange={(event) =>
                     setFiltroLocalidad(event.target.value)
                   }
-                  className="w-full rounded-xl border border-white/10 bg-[#191919] px-3 py-3 text-sm outline-none"
+                  className="w-full rounded-xl border border-[#ffcf25]/70 bg-[#ffdf43] px-3 py-3 text-sm outline-none"
                 >
 
                   <option>
@@ -559,7 +568,7 @@ export default function Home() {
 
               <div>
 
-                <label className="mb-2 block text-xs text-white/40">
+                <label className="mb-2 block text-xs text-[#ffe66b]">
                   Estado
                 </label>
 
@@ -568,7 +577,7 @@ export default function Home() {
                   onChange={(event) =>
                     setFiltroEstado(event.target.value)
                   }
-                  className="w-full rounded-xl border border-white/10 bg-[#191919] px-3 py-3 text-sm outline-none"
+                  className="w-full rounded-xl border border-[#ffcf25]/70 bg-[#ffdf43] px-3 py-3 text-sm outline-none"
                 >
 
                   <option>
@@ -588,7 +597,7 @@ export default function Home() {
 
               <div>
 
-                <label className="mb-2 block text-xs text-white/40">
+                <label className="mb-2 block text-xs text-[#ffe66b]">
                   Categoría
                 </label>
 
@@ -597,7 +606,7 @@ export default function Home() {
                   onChange={(event) =>
                     setFiltroCategoria(event.target.value)
                   }
-                  className="w-full rounded-xl border border-white/10 bg-[#191919] px-3 py-3 text-sm outline-none"
+                  className="w-full rounded-xl border border-[#ffcf25]/70 bg-[#ffdf43] px-3 py-3 text-sm outline-none"
                 >
 
                   <option>
@@ -616,9 +625,9 @@ export default function Home() {
 
               {/* CAPAS */}
 
-              <div className="border-t border-white/10 pt-5">
+              <div className="border-t border-[#ffcf25]/70 pt-5">
 
-                <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-white/30">
+                <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-[#ffe66b]">
                   Capas
                 </p>
 
@@ -640,8 +649,8 @@ export default function Home() {
                     }
                   />
 
-                  <div className="border-t border-white/10 pt-4">
-                    <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-white/30">
+                  <div className="border-t border-[#ffcf25]/70 pt-4">
+                    <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-[#ffe66b]">
                       Opciones del mapa
                     </p>
 
@@ -676,7 +685,7 @@ export default function Home() {
               MAPA
           ================================================= */}
 
-          <section className="relative min-h-[650px] overflow-hidden rounded-2xl border border-white/10 bg-[#161616]">
+          <section className="map-panel relative min-h-[600px] overflow-hidden rounded-2xl border border-[#ffcf25]/70 bg-[#f5d15a]">
 
             <BogotaMap
               showReports={showReports}
@@ -691,9 +700,9 @@ export default function Home() {
 
             {/* TITULO MAPA */}
 
-            <div className="pointer-events-none absolute left-5 top-5 z-[1000] rounded-xl border border-white/10 bg-[#111111]/90 px-4 py-3 shadow-xl backdrop-blur">
+            <div className="map-title pointer-events-none absolute left-4 top-4 z-[1000] rounded-xl border border-[#ffcf25]/70 bg-[#b9001c]/90 px-4 py-3 shadow-xl backdrop-blur">
 
-              <p className="text-xs font-semibold uppercase tracking-widest text-white/40">
+              <p className="text-xs font-semibold uppercase tracking-widest text-[#ffe66b]">
                 Mapa de Bogotá
               </p>
 
@@ -705,9 +714,9 @@ export default function Home() {
 
             {/* LEYENDA */}
 
-            <div className="absolute bottom-5 left-5 z-[1000] rounded-xl border border-black/10 bg-white/95 p-4 text-black shadow-xl">
+            <div className="map-legend absolute bottom-4 right-4 z-[1000] rounded-xl border border-[#e60026]/60 bg-[#ffdf43] p-3 text-[#8d0018] shadow-xl">
 
-              <p className="mb-3 text-xs font-bold uppercase tracking-wider text-black/50">
+              <p className="mb-3 text-xs font-bold uppercase tracking-wider text-[#8d0018]">
                 Leyenda
               </p>
 
@@ -768,12 +777,12 @@ export default function Home() {
               PANEL DERECHO
           ================================================= */}
 
-          <aside className="rounded-2xl border border-white/10 bg-[#111111] p-5">
+          <aside className="selected-panel rounded-2xl border border-[#ffcf25]/70 bg-[#b9001c] p-4">
 
             <div className="mb-5 flex items-start justify-between gap-3">
 
               <div>
-                <p className="text-xs font-semibold uppercase tracking-widest text-white/30">
+                <p className="text-xs font-semibold uppercase tracking-widest text-[#ffe66b]">
                   {selectedComedor ? "Comedor seleccionado" : "Informe seleccionado"}
                 </p>
 
@@ -791,7 +800,7 @@ export default function Home() {
                 <button
                   type="button"
                   onClick={() => setSelectedComedor(null)}
-                  className="rounded-lg border border-white/10 px-3 py-2 text-xs text-white/50 transition hover:bg-white/5 hover:text-white"
+                  className="rounded-lg border border-[#ffcf25]/70 px-3 py-2 text-xs text-[#ffe66b] transition hover:bg-[#ffdf43] hover:text-[#ffe66b]"
                 >
                   Ver informe
                 </button>
@@ -806,8 +815,8 @@ export default function Home() {
               {selectedComedor ? (
                 <div className="text-center">
                   <div className="mb-2 text-5xl">🍽️</div>
-                  <p className="text-xs text-white/40">Fotografía del comedor</p>
-                  <p className="mt-1 text-[10px] text-white/25">
+                  <p className="text-xs text-[#ffe66b]">Fotografía del comedor</p>
+                  <p className="mt-1 text-[10px] text-[#ffe66b]">
                     La fotografía se vinculará en la siguiente etapa.
                   </p>
                 </div>
@@ -834,7 +843,7 @@ export default function Home() {
               ) : (
                 <div className="text-center">
                   <div className="mb-2 text-5xl">🥄</div>
-                  <p className="text-xs text-white/40">Sin fotografía</p>
+                  <p className="text-xs text-[#ffe66b]">Sin fotografía</p>
                 </div>
               )}
 
@@ -887,7 +896,7 @@ export default function Home() {
                 />
 
                 <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-widest text-white/25">
+                  <p className="text-[10px] font-semibold uppercase tracking-widest text-[#ffe66b]">
                     Estado
                   </p>
 
@@ -897,7 +906,7 @@ export default function Home() {
                       cambiarEstadoReporte(event.target.value)
                     }
                     disabled={guardandoEstado || !selectedReport.id}
-                    className="mt-2 w-full rounded-xl border border-white/10 bg-[#191919] px-3 py-3 text-sm text-white outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                    className="mt-2 w-full rounded-xl border border-[#ffcf25]/70 bg-[#ffdf43] px-3 py-3 text-sm text-[#ffe66b] outline-none disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     <option value="Pendiente">Pendiente</option>
                     <option value="En revisión">En revisión</option>
@@ -906,15 +915,15 @@ export default function Home() {
                   </select>
 
                   {guardandoEstado && (
-                    <p className="mt-2 text-xs text-white/40">
+                    <p className="mt-2 text-xs text-[#ffe66b]">
                       Guardando estado...
                     </p>
                   )}
                 </div>
               </div>
             ) : (
-              <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
-                <p className="text-sm text-white/50">
+              <div className="rounded-xl border border-[#ffcf25]/70 bg-[#ffdf43] p-4">
+                <p className="text-sm text-[#ffe66b]">
                   {cargandoReportes
                     ? "Cargando reportes desde Google Sheets..."
                     : "No hay reportes disponibles."}
@@ -922,15 +931,15 @@ export default function Home() {
               </div>
             )}
 
-            <div className="my-5 border-t border-white/10"></div>
+            <div className="my-5 border-t border-[#ffcf25]/70"></div>
 
             <div>
 
-              <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-white/30">
+              <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-[#ffe66b]">
                 {selectedComedor ? "Información" : "Descripción"}
               </p>
 
-              <p className="text-sm leading-6 text-white/60">
+              <p className="text-sm leading-6 text-[#ffe66b]">
                 {selectedComedor
                   ? "Este comedor hace parte de la red georreferenciada de Bogotá Sin Hambre."
                   : selectedReport?.description || "Sin descripción disponible."}
@@ -942,22 +951,22 @@ export default function Home() {
 
             {selectedComedor ? (
               <div className="mt-6">
-                <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-white/30">
+                <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-[#ffe66b]">
                   Estado del punto
                 </p>
 
-                <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+                <div className="rounded-xl border border-[#ffcf25]/70 bg-[#ffdf43] p-4">
                   <div className="flex items-center gap-3">
-                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-green-500/15 text-green-400">
+                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#ffdf32] text-[#ffdf32]">
                       ✓
                     </span>
 
                     <div>
-                      <p className="text-sm font-semibold text-white">
+                      <p className="text-sm font-semibold text-[#ffe66b]">
                         Comedor georreferenciado
                       </p>
 
-                      <p className="mt-0.5 text-xs text-white/30">
+                      <p className="mt-0.5 text-xs text-[#ffe66b]">
                         Punto disponible en el mapa
                       </p>
                     </div>
@@ -967,7 +976,7 @@ export default function Home() {
             ) : (
               <div className="mt-6">
 
-                <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-white/30">
+                <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-[#ffe66b]">
                   Seguimiento
                 </p>
 
@@ -1008,13 +1017,13 @@ export default function Home() {
             INFORMES RECIENTES
         ================================================= */}
 
-        <div className="mt-6 rounded-2xl border border-white/10 bg-[#111111] p-5">
+        <div className="recent-panel mt-5 rounded-2xl border border-[#ffcf25]/70 bg-[#b9001c] p-4">
 
           <div className="mb-5 flex items-center justify-between">
 
             <div>
 
-              <p className="text-xs font-semibold uppercase tracking-widest text-white/30">
+              <p className="text-xs font-semibold uppercase tracking-widest text-[#ffe66b]">
                 Actividad
               </p>
 
@@ -1024,7 +1033,7 @@ export default function Home() {
 
             </div>
 
-            <button className="text-xs text-white/40 transition hover:text-white">
+            <button className="text-xs text-[#ffe66b] transition hover:text-[#ffe66b]">
               Ver todos →
             </button>
 
@@ -1041,8 +1050,8 @@ export default function Home() {
                 }
                 className={`rounded-xl border p-4 text-left transition ${
                   selectedReport?.id === report.id
-                    ? "border-[#7a4b2a] bg-[#7a4b2a]/10"
-                    : "border-white/10 bg-white/[0.02] hover:bg-white/[0.05]"
+                    ? "border-[#ffcf25] bg-[#ffdf43]"
+                    : "border-[#ffcf25]/70 bg-[#ffe875] hover:bg-[#ffcf24]"
                 }`}
               >
 
@@ -1052,7 +1061,7 @@ export default function Home() {
                     🥄
                   </span>
 
-                  <span className="rounded-full bg-white/5 px-2 py-1 text-[10px] text-white/50">
+                  <span className="rounded-full bg-[#ffdf43] px-2 py-1 text-[10px] text-[#ffe66b]">
                     {report.status}
                   </span>
 
@@ -1062,11 +1071,11 @@ export default function Home() {
                   {report.location}
                 </p>
 
-                <p className="mt-1 text-xs text-white/40">
+                <p className="mt-1 text-xs text-[#ffe66b]">
                   {report.address}
                 </p>
 
-                <p className="mt-3 text-xs text-white/30">
+                <p className="mt-3 text-xs text-[#ffe66b]">
                   {report.date}
                 </p>
 
@@ -1076,6 +1085,23 @@ export default function Home() {
 
           </div>
 
+        </div>
+
+        {/* PANORÁMICA DE BOGOTÁ: franja inferior, debajo del mapa */}
+        <div className="panorama-footer mt-5 w-full">
+          <img
+            src="/panoramica-bogota-sombrilla.png"
+            alt="Panorámica de Bogotá y sus cerros orientales"
+            loading="lazy"
+            onError={(event) => {
+              console.error("No se pudo cargar la panorámica. Verifica que public/panoramica-bogota-sombrilla.png exista en esta rama de prueba.");
+              event.currentTarget.style.display = "none";
+            }}
+          />
+          <div className="flex items-center justify-between gap-3 bg-gradient-to-r from-[#e60026] via-[#d60020] to-[#ffcf24] px-4 py-2 text-sm font-extrabold text-[#ffe34a] sm:px-6">
+            <span>Bogotá, territorio que cuidamos</span>
+            <span className="hidden sm:inline">Saavedra · Lucha contra el hambre</span>
+          </div>
         </div>
 
       </section>
@@ -1100,11 +1126,11 @@ function Kpi({
   icon: string;
 }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-[#111111] p-5">
+    <div className="kpi-card rounded-2xl border border-[#ffcf25]/70 bg-[#b9001c] p-4">
 
       <div className="flex items-center justify-between">
 
-        <p className="text-xs font-medium text-white/40">
+        <p className="text-xs font-medium text-[#ffe66b]">
           {title}
         </p>
 
@@ -1120,7 +1146,7 @@ function Kpi({
           {value}
         </p>
 
-        <span className="text-xs text-green-400">
+        <span className="text-xs text-[#ffdf32]">
           {change}
         </span>
 
@@ -1146,23 +1172,23 @@ function LayerToggle({
   return (
     <button
       onClick={onClick}
-      className="flex w-full items-center justify-between rounded-xl border border-white/10 bg-white/[0.02] px-3 py-3 text-left transition hover:bg-white/[0.05]"
+      className="layer-toggle flex w-full items-center justify-between rounded-xl border border-[#ffcf25]/70 bg-[#ffe875] px-3 py-3 text-left transition hover:bg-[#ffcf24]"
     >
 
-      <span className="text-sm text-white/70">
+      <span className="text-sm text-[#ffe66b]">
         {label}
       </span>
 
       <span
         className={`flex h-5 w-9 items-center rounded-full p-1 transition ${
           active
-            ? "bg-[#7a4b2a]"
-            : "bg-white/10"
+            ? "bg-[#e60026]"
+            : "bg-[#ffcf24]"
         }`}
       >
 
         <span
-          className={`h-3 w-3 rounded-full bg-white transition ${
+          className={`h-3 w-3 rounded-full bg-[#ffdf32] transition ${
             active
               ? "translate-x-4"
               : "translate-x-0"
@@ -1189,11 +1215,11 @@ function InfoRow({
   return (
     <div>
 
-      <p className="text-[10px] font-semibold uppercase tracking-widest text-white/25">
+      <p className="text-[10px] font-semibold uppercase tracking-widest text-[#ffe66b]">
         {label}
       </p>
 
-      <p className="mt-1 text-sm text-white/70">
+      <p className="mt-1 text-sm text-[#ffe66b]">
         {value}
       </p>
 
@@ -1220,8 +1246,8 @@ function StatusStep({
       <div
         className={`mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs ${
           active
-            ? "bg-[#7a4b2a] text-white"
-            : "bg-white/5 text-white/20"
+            ? "bg-[#e60026] text-[#ffe66b]"
+            : "bg-[#ffdf43] text-[#ffe66b]"
         }`}
       >
         {active ? "✓" : "•"}
@@ -1232,14 +1258,14 @@ function StatusStep({
         <p
           className={`text-sm ${
             active
-              ? "text-white"
-              : "text-white/30"
+              ? "text-[#ffe66b]"
+              : "text-[#ffe66b]"
           }`}
         >
           {title}
         </p>
 
-        <p className="mt-0.5 text-xs text-white/25">
+        <p className="mt-0.5 text-xs text-[#ffe66b]">
           {description}
         </p>
 
