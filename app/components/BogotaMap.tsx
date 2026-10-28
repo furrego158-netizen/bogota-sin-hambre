@@ -571,6 +571,33 @@ function MapResize() {
    MAPA
 ========================================================= */
 
+/* =========================================================
+   COLOR DE TRONCALES TRANSMILENIO
+   Usa los atributos oficiales cuando están disponibles y aplica
+   una paleta consistente como respaldo.
+========================================================= */
+function getTroncalColor(route: any, index = 0) {
+  const properties = route?.properties || {};
+  const routeText = Object.entries(properties)
+    .filter(([key, value]) => /nombre|name|ruta|troncal|corredor|servicio|linea|línea|color/i.test(key) && value != null)
+    .map(([, value]) => String(value))
+    .join(" ")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+
+  if (/caracas/.test(routeText)) return "#E30613";
+  if (/autopista norte|norte/.test(routeText)) return "#1769FF";
+  if (/nqs|central/.test(routeText)) return "#FFD400";
+  if (/america|americas/.test(routeText)) return "#FF8A00";
+  if (/calle 80|ochenta/.test(routeText)) return "#7B2CBF";
+  if (/suba/.test(routeText)) return "#39A845";
+  if (/sur|caracas sur/.test(routeText)) return "#00A6A6";
+
+  const palette = ["#E30613", "#1769FF", "#FFD400", "#FF8A00", "#7B2CBF", "#39A845", "#00A6A6"];
+  return palette[index % palette.length];
+}
+
 export default function BogotaMap({
   showReports = true,
   showTransmi = true,
@@ -725,10 +752,10 @@ export default function BogotaMap({
                 data={feature}
                 style={{
                   color,
-                  weight: 1.5,
-                  opacity: 0.75,
+                  weight: 2,
+                  opacity: 0.95,
                   fillColor: color,
-                  fillOpacity: 0.11,
+                  fillOpacity: 0.24,
                 }}
               />
             );
@@ -758,12 +785,12 @@ export default function BogotaMap({
                   className: "",
                   html: `
                     <div style="
-                      background:rgba(255,255,255,.94);
-                      border:1px solid rgba(0,0,0,.15);
+                      background:${index % 2 === 0 ? "#FFD400" : "#C8102E"};
+                      border:1px solid ${index % 2 === 0 ? "#B58F00" : "#8F1026"};
                       border-radius:8px;
                       padding:3px 6px;
-                      box-shadow:0 1px 4px rgba(0,0,0,.16);
-                      color:#222;
+                      box-shadow:0 2px 6px rgba(0,0,0,.28);
+                      color:${index % 2 === 0 ? "#241600" : "#FFFFFF"};
                       font-family:Arial,sans-serif;
                       font-size:10px;
                       font-weight:700;
@@ -1125,9 +1152,11 @@ export default function BogotaMap({
                       key={`route-${index}-${lineIndex}`}
                       positions={positions}
                       pathOptions={{
-                        color: "#C8102E",
+                        color: getTroncalColor(route, index),
                         weight: 5,
-                        opacity: 0.9,
+                        opacity: 0.96,
+                        lineCap: "round",
+                        lineJoin: "round",
                       }}
                     />
 
@@ -1296,7 +1325,7 @@ export default function BogotaMap({
       {showTransmi &&
         loadingTransmilenio && (
 
-          <div className="absolute right-4 top-4 z-[1000] rounded-xl border border-white/10 bg-[#111111]/95 px-4 py-3 text-xs text-white shadow-xl">
+          <div className="absolute right-4 top-4 z-[1000] rounded-xl border border-white/10 bg-[#FFF7CC]/95 px-4 py-3 text-xs text-[#7A1020] shadow-xl">
 
             <span className="mr-2 inline-block h-2 w-2 animate-pulse rounded-full bg-red-500"></span>
 
@@ -1313,7 +1342,7 @@ export default function BogotaMap({
       {showTransmi &&
         errorTransmilenio && (
 
-          <div className="absolute right-4 top-4 z-[1000] rounded-xl border border-red-500/20 bg-[#111111]/95 px-4 py-3 text-xs text-red-300 shadow-xl">
+          <div className="absolute right-4 top-4 z-[1000] rounded-xl border border-red-500/20 bg-[#FFF0F0]/95 px-4 py-3 text-xs text-[#B00020] shadow-xl">
 
             No fue posible cargar
             TransMilenio.
