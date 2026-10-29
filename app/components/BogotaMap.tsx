@@ -210,30 +210,24 @@ function createComedorIcon(localidad: string) {
    ESTACIÓN TRANSMILENIO
 ========================================================= */
 
-const stationIcon = L.divIcon({
-  className: "",
-
-  html: `
-    <div
-      style="
-        width:17px;
-        height:17px;
-        background:#C8102E;
-        border:3px solid white;
+function createStationIcon(color: string) {
+  return L.divIcon({
+    className: "",
+    html: `
+      <div style="
+        width:16px;
+        height:16px;
+        background:${color};
+        border:3px solid #ffffff;
         border-radius:50%;
-        box-shadow:
-          0 2px 6px rgba(0,0,0,.45),
-          0 0 0 2px rgba(200,16,46,.20);
-      "
-    ></div>
-  `,
-
-  iconSize: [17, 17],
-
-  iconAnchor: [8.5, 8.5],
-
-  popupAnchor: [0, -10],
-});
+        box-shadow:0 2px 6px rgba(0,0,0,.38),0 0 0 2px ${color}35;
+      "></div>
+    `,
+    iconSize: [16, 16],
+    iconAnchor: [8, 8],
+    popupAnchor: [0, -10],
+  });
+}
 
 /* =========================================================
    REPORTES DE PRUEBA
@@ -596,6 +590,69 @@ function getTroncalColor(route: any, index = 0) {
 
   const palette = ["#E30613", "#1769FF", "#FFD400", "#FF8A00", "#7B2CBF", "#39A845", "#00A6A6"];
   return palette[index % palette.length];
+}
+
+/**
+ * Asigna cada estación al corredor geográfico más cercano para que el punto
+ * adopte el color de su troncal, en vez de pintar todas las estaciones de rojo.
+ */
+function getStationTroncalColor(station: any, index: number, routeFeatures: any[] = []) {
+  const stationCoordinates = station?.geometry?.coordinates;
+  if (!Array.isArray(stationCoordinates) || stationCoordinates.length < 2) {
+    return "#C8102E";
+  }
+
+  const [stationLng, stationLat] = stationCoordinates;
+  const stationProperties = station?.properties || {};
+  const stationText = Object.entries(stationProperties)
+    .filter(([key, value]) => /nombre|name|ruta|troncal|corredor|servicio|linea|línea/i.test(key) && value != null)
+    .map(([, value]) => String(value))
+    .join(" ");
+
+  // Si la estación trae el nombre de la troncal, se aprovecha directamente.
+  if (stationText.trim()) {
+    const matched = routeFeatures.find((route) => {
+      const routeText = Object.entries(route?.properties || {})
+        .filter(([key, value]) => /nombre|name|ruta|troncal|corredor|servicio|linea|línea/i.test(key) && value != null)
+        .map(([, value]) => String(value))
+        .join(" ")
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+      const normalizedStation = stationText.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+      return routeText && (normalizedStation.includes(routeText) || routeText.includes(normalizedStation));
+    });
+    if (matched) return getTroncalColor(matched, routeFeatures.indexOf(matched));
+  }
+
+  let nearestRoute: any = null;
+  let nearestDistance = Number.POSITIVE_INFINITY;
+  routeFeatures.forEach((route, routeIndex) => {
+    const coordinates = route?.geometry?.coordinates;
+    if (!coordinates) return;
+    const vertices: number[][] = [];
+    const collect = (node: any) => {
+      if (!Array.isArray(node)) return;
+      if (node.length >= 2 && typeof node[0] === "number" && typeof node[1] === "number") {
+        vertices.push(node as number[]);
+        return;
+      }
+      node.forEach(collect);
+    };
+    collect(coordinates);
+    if (!vertices.length) return;
+    const stride = Math.max(1, Math.floor(vertices.length / 100));
+    for (let i = 0; i < vertices.length; i += stride) {
+      const [lng, lat] = vertices[i];
+      const distance = Math.pow((lng - stationLng) * Math.cos(stationLat * Math.PI / 180), 2) + Math.pow(lat - stationLat, 2);
+      if (distance < nearestDistance) {
+        nearestDistance = distance;
+        nearestRoute = { route, routeIndex };
+      }
+    }
+  });
+
+  return nearestRoute
+    ? getTroncalColor(nearestRoute.route, nearestRoute.routeIndex)
+    : getTroncalColor({ properties: stationProperties }, index);
 }
 
 export default function BogotaMap({
@@ -1199,6 +1256,11 @@ export default function BogotaMap({
                 station.properties?.nombre ||
                 station.properties?.NOMBRE ||
                 "Estación TransMilenio";
+              const stationColor = getStationTroncalColor(
+                station,
+                index,
+                transmilenio?.routes?.features || []
+              );
 
               return (
 
@@ -1208,7 +1270,7 @@ export default function BogotaMap({
                     latitude,
                     longitude,
                   ]}
-                  icon={stationIcon}
+                  icon={createStationIcon(stationColor)}
                 >
 
                   {/* =================================================
@@ -1229,7 +1291,7 @@ export default function BogotaMap({
                       style={{
                         fontWeight: 700,
                         fontSize: "12px",
-                        color: "#8F1026",
+                        color: stationColor,
                         whiteSpace:
                           "nowrap",
                       }}
