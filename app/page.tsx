@@ -199,6 +199,10 @@ export default function Home() {
   // Se mantiene apagada inicialmente para conservar la vista actual.
   const [showHeatmap, setShowHeatmap] = useState(false);
 
+  // Panel de estadísticas plegable para darle más espacio al mapa.
+  // Inicia cerrado, pero conserva todos los indicadores y análisis.
+  const [showStatistics, setShowStatistics] = useState(false);
+
   const [showTransmi, setShowTransmi] = useState(false);
 
   const [showComedores, setShowComedores] = useState(false);
@@ -487,6 +491,32 @@ export default function Home() {
         </div>
 
         {/* =================================================
+            ESTADÍSTICAS Y ANÁLISIS TERRITORIAL PLEGABLES
+            Se conserva todo el contenido; cerrado deja más espacio al mapa.
+        ================================================= */}
+        <section className="mb-6 overflow-hidden rounded-2xl border border-[#e5b800] bg-[#fff9e8] shadow-sm">
+          <button
+            type="button"
+            onClick={() => setShowStatistics((actual) => !actual)}
+            aria-expanded={showStatistics}
+            aria-controls="panel-estadisticas"
+            className="flex w-full flex-wrap items-center justify-between gap-3 bg-[#c8102e] px-4 py-4 text-left text-white transition hover:bg-[#a60024] sm:px-5"
+          >
+            <span className="flex min-w-0 flex-col gap-1">
+              <span className="text-base font-extrabold">Estadísticas y análisis territorial</span>
+              <span className="text-xs font-semibold text-white/90">
+                {totalReportes.toLocaleString("es-CO")} reportes · {casosAtendidos.toLocaleString("es-CO")} atendidos · {casosPendientes.toLocaleString("es-CO")} pendientes
+              </span>
+            </span>
+            <span className="flex shrink-0 items-center gap-2 rounded-xl border border-[#ffd400]/80 bg-[#fff6cf] px-4 py-2 text-sm font-extrabold text-[#a60024]">
+              {showStatistics ? "Ocultar estadísticas" : "Ver estadísticas"}
+              <span aria-hidden="true" className="text-lg leading-none">{showStatistics ? "−" : "+"}</span>
+            </span>
+          </button>
+
+          {showStatistics && (
+            <div id="panel-estadisticas" className="space-y-6 p-4 sm:p-5">
+        {/* =================================================
             KPIs
         ================================================= */}
 
@@ -617,6 +647,10 @@ export default function Home() {
               )) : <p className="text-sm text-[#72545a]">No hay reportes para mostrar con los filtros actuales.</p>}
             </div>
           </div>
+        </section>
+
+            </div>
+          )}
         </section>
 
         {/* =================================================
