@@ -135,6 +135,7 @@ export default function Home() {
           title: item.reporte || "Reporte ciudadano",
           location: item.localidad || "Sin localidad",
           address: item.direccion || "Sin dirección",
+          rawDate: item.fecha || "",
           date: item.fecha
             ? new Date(item.fecha).toLocaleDateString("es-CO", {
                 day: "2-digit",
@@ -334,6 +335,83 @@ export default function Home() {
     ? Math.round((casosPrioritarios / totalReportes) * 100)
     : 0;
   const maximoRanking = Math.max(1, ...rankingLocalidades.map((item) => item.cantidad));
+
+  // Datos para las cuatro gráficas. Todas se calculan desde los reportes
+  // que ya pasan los filtros activos; no se usan cifras de demostración.
+  const estadosGrafica = [
+    {
+      nombre: "Atendidos",
+      cantidad: casosAtendidos,
+      color: "#27834a",
+    },
+    {
+      nombre: "Pendientes / en revisión",
+      cantidad: casosPendientes,
+      color: "#e5a000",
+    },
+    {
+      nombre: "Prioritarios",
+      cantidad: casosPrioritarios,
+      color: "#c8102e",
+    },
+  ];
+  const totalEstadosGrafica = estadosGrafica.reduce(
+    (total, item) => total + item.cantidad,
+    0
+  );
+  let acumuladoDonut = 0;
+  const segmentosDonut = estadosGrafica.map((item) => {
+    const inicio = acumuladoDonut;
+    const porcentaje = totalEstadosGrafica
+      ? (item.cantidad / totalEstadosGrafica) * 100
+      : 0;
+    acumuladoDonut += porcentaje;
+    return `${item.color} ${inicio}% ${acumuladoDonut}%`;
+  });
+  const donutBackground = totalEstadosGrafica
+    ? `conic-gradient(${segmentosDonut.join(", ")})`
+    : "conic-gradient(#eadfb9 0% 100%)";
+
+  const reportesPorFecha = Object.entries(
+    reportesFiltrados.reduce((acumulado: Record<string, number>, report: any) => {
+      if (!report.rawDate) return acumulado;
+      const fecha = new Date(report.rawDate);
+      if (Number.isNaN(fecha.getTime())) return acumulado;
+      const clave = `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, "0")}-${String(fecha.getDate()).padStart(2, "0")}`;
+      acumulado[clave] = (acumulado[clave] || 0) + 1;
+      return acumulado;
+    }, {})
+  )
+    .sort(([fechaA], [fechaB]) => fechaA.localeCompare(fechaB))
+    .slice(-7)
+    .map(([fecha, cantidad]) => ({
+      fecha,
+      etiqueta: new Date(`${fecha}T12:00:00`).toLocaleDateString("es-CO", {
+        day: "2-digit",
+        month: "short",
+      }),
+      cantidad: Number(cantidad),
+    }));
+  const maximoFecha = Math.max(1, ...reportesPorFecha.map((item) => item.cantidad));
+  const puntosTendencia = reportesPorFecha.map((item, index) => {
+    const x = reportesPorFecha.length > 1
+      ? 12 + (index / (reportesPorFecha.length - 1)) * 276
+      : 150;
+    const y = 104 - (item.cantidad / maximoFecha) * 82;
+    return `${x},${y}`;
+  }).join(" ");
+
+  const comparativoLocalidades = rankingLocalidades.map((item) => ({
+    ...item,
+    atendidos: reportesFiltrados.filter((report: any) =>
+      String(report.location || "").trim().toLowerCase() === item.localidad.toLowerCase() &&
+      String(report.status || "").trim().toLowerCase() === "atendida"
+    ).length,
+  }));
+  const maximoComparativo = Math.max(
+    1,
+    ...comparativoLocalidades.map((item) => item.cantidad)
+  );
 
   return (
     <main className="min-h-screen bg-[#fff0a8] text-[#171717]">
@@ -595,56 +673,94 @@ export default function Home() {
         </section>
 
         {/* =================================================
-            NUEVO: ANALÍTICA DE ESTADOS Y RANKING TERRITORIAL
-            Se alimenta de reportesFiltrados y respeta los filtros activos.
+            PANEL DE CUATRO GRÁFICAS DINÁMICAS
+            Datos reales de Google Sheets y filtros activos.
         ================================================= */}
-        <section className="mb-6 grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
-          <div className="overflow-hidden rounded-2xl border border-[#e5b800] bg-[#fff9e8] shadow-sm">
+        <section className="mb-6 grid grid-cols-1 gap-4 xl:grid-cols-2">
+          {/* Evolución de reportes */}
+          <div className="overflow-hidden rounded-2xl border border-[#e5b800] bg-[#fffdf5] shadow-sm">
             <div className="border-b border-[#f0d66a] bg-[#c8102e] px-5 py-4 text-white">
-              <h3 className="text-base font-extrabold">Estado de los reportes</h3>
-              <p className="mt-1 text-xs text-white/90">Distribución según los filtros seleccionados</p>
+              <h3 className="text-base font-extrabold">Evolución de reportes</h3>
+              <p className="mt-1 text-xs text-white/90">Últimas siete fechas con registros · según filtros activos</p>
             </div>
-            <div className="space-y-4 p-5">
-              <div>
-                <div className="mb-1 flex items-center justify-between text-sm">
-                  <span className="font-semibold text-[#5b2430]">Atendidos</span>
-                  <span className="font-extrabold text-[#287a3d]">{casosAtendidos} · {porcentajeAtendidos}%</span>
-                </div>
-                <div className="h-3 overflow-hidden rounded-full bg-[#f4e6b5]"><div className="h-full rounded-full bg-[#287a3d] transition-all" style={{ width: `${porcentajeAtendidos}%` }} /></div>
-              </div>
-              <div>
-                <div className="mb-1 flex items-center justify-between text-sm">
-                  <span className="font-semibold text-[#5b2430]">Pendientes / en revisión</span>
-                  <span className="font-extrabold text-[#a65b00]">{casosPendientes} · {porcentajePendientes}%</span>
-                </div>
-                <div className="h-3 overflow-hidden rounded-full bg-[#f4e6b5]"><div className="h-full rounded-full bg-[#e7a000] transition-all" style={{ width: `${porcentajePendientes}%` }} /></div>
-              </div>
-              <div>
-                <div className="mb-1 flex items-center justify-between text-sm">
-                  <span className="font-semibold text-[#5b2430]">Prioritarios</span>
-                  <span className="font-extrabold text-[#c8102e]">{casosPrioritarios} · {porcentajePrioritarios}%</span>
-                </div>
-                <div className="h-3 overflow-hidden rounded-full bg-[#f4e6b5]"><div className="h-full rounded-full bg-[#c8102e] transition-all" style={{ width: `${porcentajePrioritarios}%` }} /></div>
-              </div>
-              <p className="border-t border-[#f0d66a] pt-3 text-xs text-[#72545a]">Los porcentajes se calculan sobre los {totalReportes} reportes visibles.</p>
+            <div className="p-5">
+              {reportesPorFecha.length ? (
+                <>
+                  <div className="mb-3 flex items-center gap-4 text-xs font-semibold text-[#5b2430]">
+                    <span className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full bg-[#c8102e]" />Reportes recibidos</span>
+                  </div>
+                  <svg viewBox="0 0 300 130" role="img" aria-label="Evolución de reportes por fecha" className="h-40 w-full overflow-visible">
+                    {[22, 63, 104].map((y) => <line key={y} x1="10" y1={y} x2="290" y2={y} stroke="#eadfb9" strokeDasharray="4 4" />)}
+                    {reportesPorFecha.length > 1 && <polyline points={puntosTendencia} fill="none" stroke="#c8102e" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />}
+                    {reportesPorFecha.map((item, index) => {
+                      const x = reportesPorFecha.length > 1 ? 12 + (index / (reportesPorFecha.length - 1)) * 276 : 150;
+                      const y = 104 - (item.cantidad / maximoFecha) * 82;
+                      return <g key={item.fecha}><circle cx={x} cy={y} r="4.5" fill="#c8102e" stroke="#fffdf5" strokeWidth="2" /><text x={x} y="124" textAnchor="middle" fontSize="9" fill="#72545a">{item.etiqueta}</text><title>{`${item.etiqueta}: ${item.cantidad} reportes`}</title></g>;
+                    })}
+                  </svg>
+                  <p className="mt-2 text-xs text-[#72545a]">Se muestran las fechas disponibles en los registros; no se inventan días sin información.</p>
+                </>
+              ) : <p className="py-12 text-center text-sm text-[#72545a]">No hay fechas válidas para construir la tendencia.</p>}
             </div>
           </div>
 
-          <div className="overflow-hidden rounded-2xl border border-[#e5b800] bg-[#fff9e8] shadow-sm">
+          {/* Estado de reportes */}
+          <div className="overflow-hidden rounded-2xl border border-[#e5b800] bg-[#fffdf5] shadow-sm">
             <div className="border-b border-[#f0d66a] bg-[#c8102e] px-5 py-4 text-white">
-              <h3 className="text-base font-extrabold">Localidades con más reportes</h3>
-              <p className="mt-1 text-xs text-white/90">Top 5 · datos filtrados</p>
+              <h3 className="text-base font-extrabold">Estado de los reportes</h3>
+              <p className="mt-1 text-xs text-white/90">Distribución de los registros filtrados</p>
+            </div>
+            <div className="flex flex-col items-center gap-5 p-5 sm:flex-row sm:justify-center">
+              <div className="relative flex h-40 w-40 shrink-0 items-center justify-center rounded-full" style={{ background: donutBackground }}>
+                <div className="flex h-24 w-24 flex-col items-center justify-center rounded-full bg-[#fffdf5]">
+                  <strong className="text-2xl font-black text-[#5b2430]">{totalEstadosGrafica.toLocaleString("es-CO")}</strong>
+                  <span className="text-[10px] font-semibold text-[#72545a]">Total</span>
+                </div>
+              </div>
+              <div className="w-full space-y-4">
+                {estadosGrafica.map((item) => (
+                  <div key={item.nombre}>
+                    <div className="mb-1 flex items-center justify-between gap-3 text-sm">
+                      <span className="flex items-center gap-2 font-semibold text-[#5b2430]"><span className="h-3 w-3 rounded-sm" style={{ backgroundColor: item.color }} />{item.nombre}</span>
+                      <strong className="text-[#5b2430]">{item.cantidad} · {totalEstadosGrafica ? Math.round((item.cantidad / totalEstadosGrafica) * 100) : 0}%</strong>
+                    </div>
+                    <div className="h-2.5 overflow-hidden rounded-full bg-[#f4e6b5]"><div className="h-full rounded-full transition-all" style={{ width: `${totalEstadosGrafica ? (item.cantidad / totalEstadosGrafica) * 100 : 0}%`, backgroundColor: item.color }} /></div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Top localidades */}
+          <div className="overflow-hidden rounded-2xl border border-[#e5b800] bg-[#fffdf5] shadow-sm">
+            <div className="border-b border-[#f0d66a] bg-[#c8102e] px-5 py-4 text-white">
+              <h3 className="text-base font-extrabold">Reportes por localidad</h3>
+              <p className="mt-1 text-xs text-white/90">Top 5 · concentración de registros</p>
             </div>
             <div className="space-y-4 p-5">
               {rankingLocalidades.length ? rankingLocalidades.map((item, index) => (
                 <div key={item.localidad}>
-                  <div className="mb-1 flex items-center justify-between gap-3 text-sm">
-                    <span className="font-semibold text-[#5b2430]">{index + 1}. {item.localidad}</span>
-                    <span className="font-extrabold text-[#a60024]">{item.cantidad}</span>
-                  </div>
+                  <div className="mb-1 flex items-center justify-between gap-3 text-sm"><span className="font-semibold text-[#5b2430]">{index + 1}. {item.localidad}</span><strong className="text-[#a60024]">{item.cantidad}</strong></div>
                   <div className="h-3 overflow-hidden rounded-full bg-[#f4e6b5]"><div className="h-full rounded-full bg-[#c8102e] transition-all" style={{ width: `${(item.cantidad / maximoRanking) * 100}%` }} /></div>
                 </div>
-              )) : <p className="text-sm text-[#72545a]">No hay reportes para mostrar con los filtros actuales.</p>}
+              )) : <p className="py-8 text-center text-sm text-[#72545a]">No hay reportes para mostrar con los filtros actuales.</p>}
+            </div>
+          </div>
+
+          {/* Recibidos vs atendidos */}
+          <div className="overflow-hidden rounded-2xl border border-[#e5b800] bg-[#fffdf5] shadow-sm">
+            <div className="border-b border-[#f0d66a] bg-[#c8102e] px-5 py-4 text-white">
+              <h3 className="text-base font-extrabold">Atención por localidad</h3>
+              <p className="mt-1 text-xs text-white/90">Comparación de recibidos y atendidos · Top 5</p>
+            </div>
+            <div className="space-y-4 p-5">
+              <div className="mb-1 flex flex-wrap gap-4 text-xs font-semibold text-[#5b2430]"><span className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-sm bg-[#c8102e]" />Recibidos</span><span className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-sm bg-[#f2c400]" />Atendidos</span></div>
+              {comparativoLocalidades.length ? comparativoLocalidades.map((item) => (
+                <div key={item.localidad}>
+                  <div className="mb-1 flex items-center justify-between gap-3 text-xs"><span className="font-semibold text-[#5b2430]">{item.localidad}</span><span className="font-bold text-[#5b2430]">{item.atendidos}/{item.cantidad}</span></div>
+                  <div className="space-y-1"><div className="h-2.5 overflow-hidden rounded-full bg-[#f4e6b5]"><div className="h-full rounded-full bg-[#c8102e]" style={{ width: `${(item.cantidad / maximoComparativo) * 100}%` }} /></div><div className="h-2.5 overflow-hidden rounded-full bg-[#f4e6b5]"><div className="h-full rounded-full bg-[#f2c400]" style={{ width: `${(item.atendidos / maximoComparativo) * 100}%` }} /></div></div>
+                </div>
+              )) : <p className="py-8 text-center text-sm text-[#72545a]">No hay localidades con reportes.</p>}
             </div>
           </div>
         </section>
