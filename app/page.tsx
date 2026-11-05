@@ -195,6 +195,10 @@ export default function Home() {
 
   const [showReports, setShowReports] = useState(false);
 
+  // Nueva capa analítica: concentración geográfica de reportes.
+  // Se mantiene apagada inicialmente para conservar la vista actual.
+  const [showHeatmap, setShowHeatmap] = useState(false);
+
   const [showTransmi, setShowTransmi] = useState(false);
 
   const [showComedores, setShowComedores] = useState(false);
@@ -303,6 +307,29 @@ export default function Home() {
     const estado = String(report.status || "pendiente").trim().toLowerCase();
     return estado === "pendiente" || estado === "en revisión" || estado === "en revision";
   }).length;
+
+  // Ranking territorial calculado únicamente con los reportes que pasan los filtros.
+  const rankingLocalidades = Object.entries(
+    reportesFiltrados.reduce((acumulado: Record<string, number>, report: any) => {
+      const localidad = String(report.location || "Sin localidad").trim() || "Sin localidad";
+      acumulado[localidad] = (acumulado[localidad] || 0) + 1;
+      return acumulado;
+    }, {})
+  )
+    .map(([localidad, cantidad]) => ({ localidad, cantidad: Number(cantidad) }))
+    .sort((a, b) => b.cantidad - a.cantidad)
+    .slice(0, 5);
+
+  const porcentajeAtendidos = totalReportes
+    ? Math.round((casosAtendidos / totalReportes) * 100)
+    : 0;
+  const porcentajePendientes = totalReportes
+    ? Math.round((casosPendientes / totalReportes) * 100)
+    : 0;
+  const porcentajePrioritarios = totalReportes
+    ? Math.round((casosPrioritarios / totalReportes) * 100)
+    : 0;
+  const maximoRanking = Math.max(1, ...rankingLocalidades.map((item) => item.cantidad));
 
   return (
     <main className="min-h-screen bg-[#fff0a8] text-[#171717]">
@@ -538,6 +565,61 @@ export default function Home() {
         </section>
 
         {/* =================================================
+            NUEVO: ANALÍTICA DE ESTADOS Y RANKING TERRITORIAL
+            Se alimenta de reportesFiltrados y respeta los filtros activos.
+        ================================================= */}
+        <section className="mb-6 grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
+          <div className="overflow-hidden rounded-2xl border border-[#e5b800] bg-[#fff9e8] shadow-sm">
+            <div className="border-b border-[#f0d66a] bg-[#c8102e] px-5 py-4 text-white">
+              <h3 className="text-base font-extrabold">Estado de los reportes</h3>
+              <p className="mt-1 text-xs text-white/90">Distribución según los filtros seleccionados</p>
+            </div>
+            <div className="space-y-4 p-5">
+              <div>
+                <div className="mb-1 flex items-center justify-between text-sm">
+                  <span className="font-semibold text-[#5b2430]">Atendidos</span>
+                  <span className="font-extrabold text-[#287a3d]">{casosAtendidos} · {porcentajeAtendidos}%</span>
+                </div>
+                <div className="h-3 overflow-hidden rounded-full bg-[#f4e6b5]"><div className="h-full rounded-full bg-[#287a3d] transition-all" style={{ width: `${porcentajeAtendidos}%` }} /></div>
+              </div>
+              <div>
+                <div className="mb-1 flex items-center justify-between text-sm">
+                  <span className="font-semibold text-[#5b2430]">Pendientes / en revisión</span>
+                  <span className="font-extrabold text-[#a65b00]">{casosPendientes} · {porcentajePendientes}%</span>
+                </div>
+                <div className="h-3 overflow-hidden rounded-full bg-[#f4e6b5]"><div className="h-full rounded-full bg-[#e7a000] transition-all" style={{ width: `${porcentajePendientes}%` }} /></div>
+              </div>
+              <div>
+                <div className="mb-1 flex items-center justify-between text-sm">
+                  <span className="font-semibold text-[#5b2430]">Prioritarios</span>
+                  <span className="font-extrabold text-[#c8102e]">{casosPrioritarios} · {porcentajePrioritarios}%</span>
+                </div>
+                <div className="h-3 overflow-hidden rounded-full bg-[#f4e6b5]"><div className="h-full rounded-full bg-[#c8102e] transition-all" style={{ width: `${porcentajePrioritarios}%` }} /></div>
+              </div>
+              <p className="border-t border-[#f0d66a] pt-3 text-xs text-[#72545a]">Los porcentajes se calculan sobre los {totalReportes} reportes visibles.</p>
+            </div>
+          </div>
+
+          <div className="overflow-hidden rounded-2xl border border-[#e5b800] bg-[#fff9e8] shadow-sm">
+            <div className="border-b border-[#f0d66a] bg-[#c8102e] px-5 py-4 text-white">
+              <h3 className="text-base font-extrabold">Localidades con más reportes</h3>
+              <p className="mt-1 text-xs text-white/90">Top 5 · datos filtrados</p>
+            </div>
+            <div className="space-y-4 p-5">
+              {rankingLocalidades.length ? rankingLocalidades.map((item, index) => (
+                <div key={item.localidad}>
+                  <div className="mb-1 flex items-center justify-between gap-3 text-sm">
+                    <span className="font-semibold text-[#5b2430]">{index + 1}. {item.localidad}</span>
+                    <span className="font-extrabold text-[#a60024]">{item.cantidad}</span>
+                  </div>
+                  <div className="h-3 overflow-hidden rounded-full bg-[#f4e6b5]"><div className="h-full rounded-full bg-[#c8102e] transition-all" style={{ width: `${(item.cantidad / maximoRanking) * 100}%` }} /></div>
+                </div>
+              )) : <p className="text-sm text-[#72545a]">No hay reportes para mostrar con los filtros actuales.</p>}
+            </div>
+          </div>
+        </section>
+
+        {/* =================================================
             DASHBOARD
         ================================================= */}
 
@@ -687,6 +769,12 @@ export default function Home() {
                   />
 
                   <LayerToggle
+                    label="🔥 Mapa de calor de reportes"
+                    active={showHeatmap}
+                    onClick={() => setShowHeatmap(!showHeatmap)}
+                  />
+
+                  <LayerToggle
                     label="TransMilenio"
                     active={showTransmi}
                     onClick={() =>
@@ -742,6 +830,7 @@ export default function Home() {
 
             <BogotaMap
               showReports={showReports}
+              showHeatmap={showHeatmap}
               showTransmi={showTransmi}
               showComedores={showComedores}
               showLimites={showLimites}
@@ -752,6 +841,15 @@ export default function Home() {
             />
 
             {/* TITULO MAPA */}
+
+            {showHeatmap && (
+              <div className="pointer-events-none absolute right-4 top-4 z-[1000] rounded-xl border border-[#e5b800] bg-[#fff6cf]/95 px-3 py-2 shadow-lg">
+                <p className="text-[10px] font-extrabold uppercase tracking-wider text-[#7a001b]">Concentración de reportes</p>
+                <div className="mt-2 flex items-center gap-2 text-xs text-[#5b2430]"><span className="h-3 w-3 rounded-full bg-[#fff000]" /> Baja</div>
+                <div className="mt-1 flex items-center gap-2 text-xs text-[#5b2430]"><span className="h-3 w-3 rounded-full bg-[#ff8a00]" /> Media</div>
+                <div className="mt-1 flex items-center gap-2 text-xs text-[#5b2430]"><span className="h-3 w-3 rounded-full bg-[#e30613]" /> Alta</div>
+              </div>
+            )}
 
             <div className="pointer-events-none absolute left-5 top-5 z-[1000] rounded-xl border border-[#e5b800]/50 bg-[#fff6cf]/90 px-4 py-3 shadow-xl backdrop-blur">
 
