@@ -22,6 +22,7 @@ import { useEffect, useState } from "react";
 
 interface BogotaMapProps {
   showReports?: boolean;
+  showHeatmap?: boolean;
   showTransmi?: boolean;
   showComedores?: boolean;
   showLimites?: boolean;
@@ -655,8 +656,18 @@ function getStationTroncalColor(station: any, index: number, routeFeatures: any[
     : getTroncalColor({ properties: stationProperties }, index);
 }
 
+function createHeatIcon(color: string, size: number) {
+  return L.divIcon({
+    className: "citizen-report-heat",
+    html: `<div style="width:${size}px;height:${size}px;border-radius:50%;background:radial-gradient(circle, ${color}99 0%, ${color}55 28%, ${color}22 52%, transparent 76%);filter:blur(2px);pointer-events:none;"></div>`,
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size / 2],
+  });
+}
+
 export default function BogotaMap({
   showReports = true,
+  showHeatmap = false,
   showTransmi = true,
   showComedores = true,
   showLimites = true,
@@ -862,6 +873,48 @@ export default function BogotaMap({
               />
             );
           })}
+
+        {/* =================================================
+            MAPA DE CALOR DE REPORTES
+            Intensidad espacial calculada con la cercanía de los reportes.
+            Se dibuja debajo de los marcadores individuales para conservar
+            la consulta y selección de cada caso.
+        ================================================= */}
+
+        {showHeatmap && reportsFromPage.length > 0 &&
+          reportsFromPage
+            .filter((report: any) => {
+              const lat = Number(report.latitud ?? report.lat);
+              const lng = Number(report.longitud ?? report.lng);
+              return Number.isFinite(lat) && Number.isFinite(lng);
+            })
+            .map((report: any, index: number, validReports: any[]) => {
+              const lat = Number(report.latitud ?? report.lat);
+              const lng = Number(report.longitud ?? report.lng);
+              const vecinos = validReports.filter((otro: any) => {
+                const otraLat = Number(otro.latitud ?? otro.lat);
+                const otraLng = Number(otro.longitud ?? otro.lng);
+                const distanciaAprox = Math.sqrt(
+                  Math.pow((lat - otraLat) * 111, 2) +
+                  Math.pow((lng - otraLng) * 111 * Math.cos(lat * Math.PI / 180), 2)
+                );
+                return distanciaAprox <= 0.8;
+              }).length;
+              const intensidad = Math.min(vecinos, 6);
+              const color = intensidad >= 4 ? "#e30613" : intensidad >= 2 ? "#ff8a00" : "#fff000";
+              const size = 82 + intensidad * 13;
+
+              return (
+                <Marker
+                  key={`heat-${report.id ?? index}`}
+                  position={[lat, lng]}
+                  icon={createHeatIcon(color, size)}
+                  interactive={false}
+                  keyboard={false}
+                  zIndexOffset={-1000}
+                />
+              );
+            })}
 
         {/* =================================================
             CUCHARAS / INFORMES
